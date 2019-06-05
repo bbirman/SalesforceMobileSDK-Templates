@@ -59,7 +59,7 @@ class UserListScreen extends React.Component {
 
     fetchData() {
         var that = this;
-        net.query('SELECT Id, Name FROM User LIMIT 10',
+        net.query('SELECT Id, Name FROM Contact LIMIT 10',
                   (response) => that.setState({data: response.records})
                  );
     }
