@@ -25,6 +25,7 @@
 import Foundation
 import UIKit
 import MobileSync
+import SwiftUI
 
 class AppDelegate : UIResponder, UIApplicationDelegate {
     var window: UIWindow?
@@ -61,7 +62,8 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
         return true
     }
     
-    func registerForRemotePushNotifications() {        PushNotificationManager.sharedInstance().registerForRemoteNotifications();
+    func registerForRemotePushNotifications() {
+        PushNotificationManager.sharedInstance().registerForRemoteNotifications();
     }
     
     func customizeLoginView() {
@@ -130,7 +132,7 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
     func setupRootViewController() {
         let rootVC = RootViewController()
         let navVC = UINavigationController(rootViewController: rootVC)
-        self.window?.rootViewController = navVC
+        self.window?.rootViewController = UIHostingController(rootView: ContactListView())
     }
     
     func resetViewState(_ postResetBlock: @escaping () -> ()) {

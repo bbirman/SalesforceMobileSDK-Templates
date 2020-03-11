@@ -291,7 +291,7 @@ class SObjectDataManager {
             return []
         }
         dataToUnDelete.updateSoup(forFieldName: kSyncTargetLocallyDeleted, fieldValue: false)
-        let locallyCreatedOrUpdated = dataLocallyCreated(dataToUnDelete) || dataLocallyUpdated(dataToUnDelete) ? 1 : 0
+        let locallyCreatedOrUpdated = SObjectDataManager.dataLocallyCreated(dataToUnDelete) || SObjectDataManager.dataLocallyUpdated(dataToUnDelete) ? 1 : 0
         dataToUnDelete.updateSoup(forFieldName: kSyncTargetLocal, fieldValue: locallyCreatedOrUpdated)
         let sobjectSpec = type(of: dataToUnDelete).dataSpec()
         try store.upsert(entries: [dataToUnDelete.soupDict], forSoupNamed: (sobjectSpec?.soupName)!, withExternalIdPath: SObjectConstants.kSObjectIdField)
@@ -308,7 +308,7 @@ class SObjectDataManager {
         return value ?? false
     }
 
-    func dataLocallyCreated(_ data: SObjectData?) -> Bool {
+    static func dataLocallyCreated(_ data: SObjectData?) -> Bool {
         guard let data = data else {
             return false
         }
@@ -316,7 +316,7 @@ class SObjectDataManager {
         return value ?? false
     }
 
-    func dataLocallyUpdated(_ data: SObjectData?) -> Bool {
+    static func dataLocallyUpdated(_ data: SObjectData?) -> Bool {
         guard let data = data else {
             return false
         }

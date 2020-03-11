@@ -39,7 +39,11 @@ enum ContactConstants {
     static let kContactHomePhoneField    = "HomePhone"
 }
 
-class ContactSObjectData: SObjectData {
+class ContactSObjectData: SObjectData, Identifiable {
+//    static func == (lhs: ContactSObjectData, rhs: ContactSObjectData) -> Bool {
+//        return true
+//    }
+//    
     
     var firstName: String? {
         get {

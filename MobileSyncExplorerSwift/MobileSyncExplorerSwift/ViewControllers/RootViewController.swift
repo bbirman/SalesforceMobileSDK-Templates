@@ -30,6 +30,7 @@
 import UIKit
 import CoreGraphics
 import MobileSync
+import SwiftUI
 
 class RootViewController: UniversalViewController {
     
@@ -100,32 +101,37 @@ class RootViewController: UniversalViewController {
     }
 
     @objc func showAdditionalActions(_ sender: UIBarButtonItem) {
-        let table = AdditionalActionsViewController()
-        table.modalPresentationStyle = .popover
-        table.preferredContentSize = CGSize(width: 200.0, height: 132.0)
-        table.onLogoutSelected = {
-            table.dismiss(animated: true, completion: {
-                self.showLogoutActionSheet()
-            })
-        }
-        table.onSwitchUserSelected = {
-            table.dismiss(animated: true, completion: {
-                self.showSwitchUserController()
-            })
-        }
-        table.onDBInspectorSelected = {
-            table.dismiss(animated: true, completion: {
-                self.showDBInspector()
-            })
-        }
-        table.onCancelSelected = {
-            table.dismiss(animated: true, completion: nil)
-        }
-        
-        self.present(table, animated: true, completion: nil)
-        self.presentedActions = table
-        let popover = table.popoverPresentationController
-        popover?.barButtonItem = sender
+        self.navigationController?.pushViewController(UIHostingController(
+            rootView: ContactDetailView()), animated: true)
+//        self.navigationController?.pushViewController(UIHostingController(
+//            rootView: ContactListView(dataRows: self.sObjectsDataManager.dataRows)
+//        ), animated: true)
+//        let table = AdditionalActionsViewController()
+//        table.modalPresentationStyle = .popover
+//        table.preferredContentSize = CGSize(width: 200.0, height: 132.0)
+//        table.onLogoutSelected = {
+//            table.dismiss(animated: true, completion: {
+//                self.showLogoutActionSheet()
+//            })
+//        }
+//        table.onSwitchUserSelected = {
+//            table.dismiss(animated: true, completion: {
+//                self.showSwitchUserController()
+//            })
+//        }
+//        table.onDBInspectorSelected = {
+//            table.dismiss(animated: true, completion: {
+//                self.showDBInspector()
+//            })
+//        }
+//        table.onCancelSelected = {
+//            table.dismiss(animated: true, completion: nil)
+//        }
+//
+//        self.present(table, animated: true, completion: nil)
+//        self.presentedActions = table
+//        let popover = table.popoverPresentationController
+//        popover?.barButtonItem = sender
     }
     
     @objc func didPressAddContact() {
@@ -264,8 +270,8 @@ extension RootViewController: UITableViewDataSource {
             cell.backgroundColor = UIColor.clear
         }
        
-        cell.showRefresh = self.sObjectsDataManager.dataLocallyUpdated(contact)
-        cell.showCreated = self.sObjectsDataManager.dataLocallyCreated(contact)
+        cell.showRefresh = SObjectDataManager.dataLocallyUpdated(contact)
+        cell.showCreated = SObjectDataManager.dataLocallyCreated(contact)
         cell.title = ContactHelper.nameStringFromContact(contact)
         cell.subtitle = ContactHelper.titleStringFromContact(contact)
         cell.leftImage = ContactHelper.initialsImage(ContactHelper.colorFromContact(contact), initials: ContactHelper.initialsStringFromContact(contact))
