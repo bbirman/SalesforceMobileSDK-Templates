@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		4F393A291C3C8BCD00B3EA13 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F393A281C3C8BCD00B3EA13 /* main.swift */; };
 		4FD6C47A1B754AF1002F9F90 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD6C4791B754AF1002F9F90 /* AppDelegate.swift */; };
+		699277BF241975CE00E2DCF4 /* ContactListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 699277BE241975CE00E2DCF4 /* ContactListModel.swift */; };
 		69B257B1240DABAF00CBCF1A /* ContactDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B257B0240DABAF00CBCF1A /* ContactDetailView.swift */; };
 		69E6BCE32409CB8700FB1FD4 /* ContactListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E6BCE22409CB8700FB1FD4 /* ContactListView.swift */; };
 		78A235BD93AB7D080D67CD51 /* Pods_MobileSyncExplorerSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82A29C75280BDF73123F14B4 /* Pods_MobileSyncExplorerSwift.framework */; };
@@ -40,6 +41,7 @@
 		4FD6C4791B754AF1002F9F90 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4FD6C49A1B755242002F9F90 /* Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bridging-Header.h"; sourceTree = "<group>"; };
 		4FF12F8A1DCA91F5004D9EF9 /* MobileSyncExplorerSwift.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MobileSyncExplorerSwift.entitlements; sourceTree = "<group>"; };
+		699277BE241975CE00E2DCF4 /* ContactListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListModel.swift; sourceTree = "<group>"; };
 		69B257B0240DABAF00CBCF1A /* ContactDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactDetailView.swift; sourceTree = "<group>"; };
 		69E6BCE22409CB8700FB1FD4 /* ContactListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactListView.swift; sourceTree = "<group>"; };
 		762732C14CFE40A989C3AD70 /* Pods-MobileSyncExplorerSwift.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MobileSyncExplorerSwift.debug.xcconfig"; path = "Pods/Target Support Files/Pods-MobileSyncExplorerSwift/Pods-MobileSyncExplorerSwift.debug.xcconfig"; sourceTree = "<group>"; };
@@ -119,6 +121,7 @@
 		4FD6C4A11B755265002F9F90 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				699277BE241975CE00E2DCF4 /* ContactListModel.swift */,
 				B76D656820B3323A00B55764 /* Helpers */,
 				B76D655D20B3322B00B55764 /* ViewControllers */,
 				B767370B20AB60B300F04103 /* SObjects */,
@@ -342,6 +345,7 @@
 				B76D65DD20B4A0C900B55764 /* Contacts.swift in Sources */,
 				4F393A291C3C8BCD00B3EA13 /* main.swift in Sources */,
 				B76D656320B3322B00B55764 /* ContactDetailViewController.swift in Sources */,
+				699277BF241975CE00E2DCF4 /* ContactListModel.swift in Sources */,
 				B767370D20AB611500F04103 /* SObjects.swift in Sources */,
 				B76D656E20B3323A00B55764 /* UIFont+helper.swift in Sources */,
 				69B257B1240DABAF00CBCF1A /* ContactDetailView.swift in Sources */,

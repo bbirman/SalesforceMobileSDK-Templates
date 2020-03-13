@@ -41,6 +41,7 @@ class RootViewController: UniversalViewController {
     fileprivate let tableView = UITableView(frame: .zero, style: .plain)
     fileprivate let searchController = UISearchController(searchResultsController: nil)
     fileprivate var sObjectsDataManager = SObjectDataManager(dataSpec: ContactSObjectData.dataSpec()!)
+    //fileprivate var contactList =
     
     deinit {
         NotificationCenter.default.removeObserver(self)
@@ -48,6 +49,7 @@ class RootViewController: UniversalViewController {
     
     init() {
         super.init(nibName: nil, bundle: nil)
+        
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -77,15 +79,17 @@ class RootViewController: UniversalViewController {
         self.searchController.obscuresBackgroundDuringPresentation = false
         self.definesPresentationContext = true
         
-        self.tableView.tableHeaderView = self.searchController.searchBar
-        self.tableView.translatesAutoresizingMaskIntoConstraints = false
-        self.tableView.separatorInset = UIEdgeInsets.zero
-        self.tableView.separatorColor = UIColor.appSeparator
-        self.tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: "cell")
-        self.tableView.delegate = self
-        self.tableView.dataSource = self
-        self.tableView.isAccessibilityElement = true
-        self.view.addSubview(self.tableView)
+        
+        let contactList = UIHostingController(rootView: ContactListView(dataRows: sObjectsDataManager.dataRows))
+//        self.tableView.tableHeaderView = self.searchController.searchBar
+//        self.tableView.translatesAutoresizingMaskIntoConstraints = false
+//        self.tableView.separatorInset = UIEdgeInsets.zero
+//        self.tableView.separatorColor = UIColor.appSeparator
+//        self.tableView.register(ContactTableViewCell.self, forCellReuseIdentifier: "cell")
+//        self.tableView.delegate = self
+//        self.tableView.dataSource = self
+//        self.tableView.isAccessibilityElement = true
+        self.view.addSubview(contactList.view)
         
         let safe = self.view.safeAreaLayoutGuide
         self.commonConstraints.append(contentsOf: [self.tableView.leftAnchor.constraint(equalTo: safe.leftAnchor),

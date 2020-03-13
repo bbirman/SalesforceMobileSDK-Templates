@@ -132,7 +132,7 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
     func setupRootViewController() {
         let rootVC = RootViewController()
         let navVC = UINavigationController(rootViewController: rootVC)
-        self.window?.rootViewController = UIHostingController(rootView: ContactListView())
+        self.window?.rootViewController = navVC
     }
     
     func resetViewState(_ postResetBlock: @escaping () -> ()) {
