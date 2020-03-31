@@ -47,6 +47,9 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
         self.window = UIWindow(frame: UIScreen.main.bounds)
         self.initializeAppViewState()
         
+        
+
+        
         // If you wish to register for push notifications, uncomment the line below.  Note that,
         // if you want to receive push notifications from Salesforce, you will also need to
         // implement the application(application, didRegisterForRemoteNotificationsWithDeviceToken) method (below).
@@ -63,7 +66,15 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
     }
     
     func registerForRemotePushNotifications() {
-        PushNotificationManager.sharedInstance().registerForRemoteNotifications();
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
+            guard granted else {
+                SalesforceLogger.e(AppDelegate.self, message: "Push notification authorization denied")
+                return
+            }
+            DispatchQueue.main.async {
+                PushNotificationManager.sharedInstance().registerForRemoteNotifications()
+            }
+        }
     }
     
     func customizeLoginView() {
@@ -109,7 +120,7 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
  : Any] = [:]) -> Bool {
         // Uncomment following block to enable IDP Login flow
 //        return self.enableIDPLoginFlowForURL(url, options: options)
-        return false;
+        return false
     }
     
     func enableIDPLoginFlowForURL(_ url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
@@ -130,9 +141,7 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
     }
     
     func setupRootViewController() {
-        let rootVC = RootViewController()
-        let navVC = UINavigationController(rootViewController: rootVC)
-        self.window?.rootViewController = navVC
+        self.window?.rootViewController = UIHostingController(rootView: ContactListView())
     }
     
     func resetViewState(_ postResetBlock: @escaping () -> ()) {

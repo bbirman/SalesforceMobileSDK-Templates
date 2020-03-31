@@ -40,11 +40,6 @@ enum ContactConstants {
 }
 
 class ContactSObjectData: SObjectData, Identifiable {
-//    static func == (lhs: ContactSObjectData, rhs: ContactSObjectData) -> Bool {
-//        return true
-//    }
-//    
-    
     var firstName: String? {
         get {
             return super.nonNullFieldValue(ContactConstants.kContactFirstNameField) as? String

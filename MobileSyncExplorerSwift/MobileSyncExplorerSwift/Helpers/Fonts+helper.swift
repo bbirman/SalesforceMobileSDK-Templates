@@ -1,8 +1,8 @@
 /*
- ViewController.swift
+ Fonts+helper.swift
  MobileSyncExplorerSwift
 
- Created by Nicholas McDonald on 1/3/18.
+ Created by Nicholas McDonald on 12/6/17.
 
  Copyright (c) 2018-present, salesforce.com, inc. All rights reserved.
  
@@ -28,27 +28,16 @@
  */
 
 import UIKit
-import SalesforceSDKCore.UIColor_SFColors
+import SwiftUI
 
-class InitialViewController: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        self.view.backgroundColor = UIColor.salesforceSystemBackground
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        guard let info = Bundle.main.infoDictionary, let name = info[kCFBundleNameKey as String] else { return }
-        label.font = UIFont.systemFont(ofSize: 29)
-        label.textColor = UIColor.black
-        label.text = name as? String
-        self.view.addSubview(label)
-        label.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        label.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
-        // Do any additional setup after loading the view, typically from a nib.
+extension UIFont {
+    class func appRegularFont(_ size: CGFloat) -> UIFont {
+        return UIFont.systemFont(ofSize: size, weight: .regular)
     }
+}
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+extension Font {
+    static func appRegularFont(_ size: CGFloat) -> Font {
+        return Font(UIFont.appRegularFont(size))
     }
 }
