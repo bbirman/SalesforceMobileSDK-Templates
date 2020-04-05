@@ -62,7 +62,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate
         return true
     }
     
-    func registerForRemotePushNotifications() {        PushNotificationManager.sharedInstance().registerForRemoteNotifications();
+    func registerForRemotePushNotifications() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
+            if granted {
+                DispatchQueue.main.async {
+                    PushNotificationManager.sharedInstance().registerForRemoteNotifications()
+                }
+            } else {
+                if let error = error {
+                    SalesforceLogger.e(AppDelegate.self, message: "Push notification authorization error: \(error)")
+                } else {
+                    SalesforceLogger.d(AppDelegate.self, message: "Push notification authorization denied")
+                }
+            }
+        }
     }
     
     func customizeLoginView() {
