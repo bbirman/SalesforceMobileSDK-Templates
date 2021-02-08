@@ -28,6 +28,7 @@
 import UIKit
 import SwiftUI
 import SalesforceSDKCore
+import MobileSync
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     public var window: UIWindow?
@@ -74,6 +75,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
    }
    
     func setupRootViewController(userActivity: NSUserActivity?) {
+        // Setup store based on config userstore.json
+        MobileSyncSDKManager.shared.setupUserStoreFromDefaultConfig()
+        // Setup syncs based on config usersyncs.json
+        MobileSyncSDKManager.shared.setupUserSyncsFromDefaultConfig()
+        
         if let userActivity = userActivity, userActivity.title == openDetailPath,
            let selectionId = userActivity.userInfo?[openDetailRecordIdKey] as? String {
                 let list = ContactListView(selectedRecord: selectionId)
@@ -84,12 +90,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func resetViewState(_ postResetBlock: @escaping () -> ()) {
-        if let rootViewController = self.window?.rootViewController {
-            if let _ = rootViewController.presentedViewController {
-                rootViewController.dismiss(animated: false, completion: postResetBlock)
-                return
-            }
-        }
+        self.window?.rootViewController = nil;
+//        if let rootViewController = self.window?.rootViewController {
+//            if let _ = rootViewController.presentedViewController {
+//                rootViewController.dismiss(animated: false, completion: postResetBlock)
+//                return
+//            }
+//        }
         postResetBlock()
     }
 }
