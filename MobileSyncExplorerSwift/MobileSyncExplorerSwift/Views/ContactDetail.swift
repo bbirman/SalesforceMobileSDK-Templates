@@ -112,6 +112,7 @@ struct ContactDetailView: View {
             self.onAppearAction()
         }
         .navigationBarTitle(Text(viewModel.title), displayMode: .inline)
+        .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading:
             Button(action: {
                 if self.isEditing {
@@ -126,7 +127,7 @@ struct ContactDetailView: View {
                     Text("Cancel")
                 } else {
                     HStack {
-                        Image("backArrow")
+                        Image("backArrow").renderingMode(.template)
                         Text("Back")
                     }
                 }

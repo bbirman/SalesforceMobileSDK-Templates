@@ -155,13 +155,13 @@ struct NavBarButtons: View {
             NavigationLink(destination: ContactDetailView(contact: nil, sObjectDataManager: self.viewModel.sObjectDataManager), isActive: $newContactPresented, label: { EmptyView() })
             Button(action: {
                 self.newContactPresented = true
-            }, label: { Image("plusButton") })
+            }, label: { Image("plusButton").renderingMode(.template) })
             Button(action: {
                 self.viewModel.syncUpDown()
-            }, label: { Image("sync") })
+            }, label: { Image("sync").renderingMode(.template) })
             Button(action: {
                 self.actionSheetPresented = true
-            }, label: { Image("setting") })
+            }, label: { Image("setting").renderingMode(.template) })
                 .actionSheet(isPresented: $actionSheetPresented) {
                  ActionSheet(title: Text("Additional Actions"), buttons: [
                     .default(Text("Show Info"), action: {
