@@ -32,6 +32,11 @@ struct ContactListView: View {
     @ObservedObject private var viewModel = ContactListViewModel()
     private var notificationModel = NotificationListModel()
     @State private var searchTerm: String = ""
+    @State var selectedRecord: String? = nil
+    
+    init(selectedRecord: String?) {
+        self._selectedRecord = State(initialValue: selectedRecord)
+    }
 
     var body: some View {
         NavigationView {
@@ -42,8 +47,13 @@ struct ContactListView: View {
                         ForEach(viewModel.sObjectDataManager.contacts.filter { contact in
                             self.searchTerm.isEmpty ? true : self.viewModel.contactMatchesSearchTerm(contact: contact, searchTerm: self.searchTerm)
                         }) { contact in
-                            NavigationLink(destination: ContactDetailView(contact: contact, sObjectDataManager: self.viewModel.sObjectDataManager)) {
-                                ContactCell(contact: contact)
+                            NavigationLink(destination: ContactDetailView(contact: contact, sObjectDataManager: self.viewModel.sObjectDataManager, dismiss: { self.selectedRecord = nil }), tag: contact.id.stringValue, selection: $selectedRecord) {
+                                if #available(iOS 14.0, *) {
+                                    ContactCell(contact: contact)
+                                        .onDrag { return viewModel.itemProvider(contact: contact) }
+                                } else {
+                                    ContactCell(contact: contact)
+                                }
                             }
                             .listRowBackground(SObjectDataManager.dataLocallyDeleted(contact) ? Color.contactCellDeletedBackground : Color.clear)
                         }

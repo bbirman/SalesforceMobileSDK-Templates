@@ -39,12 +39,17 @@ struct AlertContent: Identifiable {
     var okayButton = false
 }
 
+let openDetailActivityType = "com.salesforce.explorer.openDetail"
+let openDetailPath = "openDetail"
+let openDetailRecordIdKey = "recordId"
+
 class ContactListViewModel: ObservableObject {
     @Published var alertContent: AlertContent?
-    @ObservedObject var sObjectDataManager: SObjectDataManager = SObjectDataManager(dataSpec: ContactSObjectData.dataSpec()!)
+    @ObservedObject var sObjectDataManager: SObjectDataManager
     var anyCancellable: AnyCancellable?
 
     init() {
+        sObjectDataManager = SObjectDataManager.shared
         anyCancellable = sObjectDataManager.objectWillChange.sink { _ in
             self.objectWillChange.send()
         }
@@ -52,6 +57,9 @@ class ContactListViewModel: ObservableObject {
     }
 
     func syncUpDown() {
+        if let syncUp = sObjectDataManager.getSync(sObjectDataManager.kSyncUpName), syncUp.isRunning() {
+            return
+        }
         createAlert(title: "Syncing with Salesforce", message: nil, stopButton: false)
         sObjectDataManager.syncUpDown(completion: { [weak self] success in
             if success {
@@ -148,6 +156,15 @@ class ContactListViewModel: ObservableObject {
         sObjectDataManager.stopSyncManager()
         updateAlert(info: "\nRequesting sync manager stop")
     }
+    
+    func itemProvider(contact: ContactSObjectData) -> NSItemProvider {
+        let userActivity = NSUserActivity(activityType: openDetailActivityType)
+        userActivity.title = openDetailPath
+        userActivity.userInfo = [openDetailRecordIdKey: contact.id.stringValue]
+        let itemProvider = NSItemProvider(object:contact.id.stringValue as NSString)
+        itemProvider.registerObject(userActivity, visibility: .all)
+        return itemProvider
+    }
 
     // MARK: Private
     private func sync(syncName: String) {
@@ -172,7 +189,10 @@ class ContactListViewModel: ObservableObject {
         }
     }
 
-    private func infoForSyncState(_ syncState:SyncState) -> String {
+    private func infoForSyncState(_ syncState:SyncState?) -> String {
+        guard let syncState = syncState else {
+            return "Sync not found"
+        }
         return "\(syncState.progress)% \(SyncState.syncStatus(toString:syncState.status)) totalSize:\(syncState.totalSize) maxTs:\(syncState.maxTimeStamp)"
     }
 }

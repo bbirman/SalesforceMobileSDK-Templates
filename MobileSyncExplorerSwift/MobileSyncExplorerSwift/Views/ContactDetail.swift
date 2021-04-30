@@ -83,6 +83,7 @@ struct ContactDetailView: View {
     @ObservedObject private var viewModel: ContactDetailViewModel
     @State private var isEditing: Bool = false
     private var onAppearAction: () -> Void = {}
+    private var dismissAction: () -> Void = {}
 
     init(contactId: String, sObjectDataManager: SObjectDataManager, onAppear: @escaping () -> Void) {
         self.viewModel = ContactDetailViewModel(contactId: contactId, sObjectDataManager: sObjectDataManager)
@@ -94,6 +95,11 @@ struct ContactDetailView: View {
         if viewModel.isNewContact {
             self._isEditing = State(initialValue: true)
         }
+    }
+    
+    init(contact: ContactSObjectData, sObjectDataManager: SObjectDataManager, dismiss: @escaping () -> Void) {
+        self.viewModel = ContactDetailViewModel(contact: contact, sObjectDataManager: sObjectDataManager)
+        self.dismissAction = dismiss
     }
 
     var body: some View {
@@ -121,13 +127,15 @@ struct ContactDetailView: View {
                     }
                 } else {
                     self.presentationMode.wrappedValue.dismiss()
+                    self.dismissAction()
                 }
             }, label: {
                 if self.isEditing {
                     Text("Cancel")
                 } else {
                     HStack {
-                        Image("backArrow").renderingMode(.template)
+                        Image("backArrow")
+                            .renderingMode(.template)
                         Text("Back")
                     }
                 }
