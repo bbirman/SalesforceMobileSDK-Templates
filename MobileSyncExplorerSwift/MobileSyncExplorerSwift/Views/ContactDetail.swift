@@ -114,6 +114,7 @@ struct ContactDetailView: View {
                 self.viewModel.deleteButtonTapped()
                 self.presentationMode.wrappedValue.dismiss()
             }
+            Spacer()
         }.onAppear {
             self.onAppearAction()
         }
