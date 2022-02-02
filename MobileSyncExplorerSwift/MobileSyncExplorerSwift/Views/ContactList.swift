@@ -34,9 +34,9 @@ struct ContactListView: View {
     @State private var searchTerm: String = ""
     @State var selectedRecord: String? = nil
     
-    init(selectedRecord: String?, sObjectDataManager: SObjectDataManager) {
+    init(sObjectDataManager: SObjectDataManager, selectedRecord: String? = nil, newContact: Bool = false) {
         self._selectedRecord = State(initialValue: selectedRecord)
-        self.viewModel = ContactListViewModel(sObjectDataManager: sObjectDataManager)
+        self.viewModel = ContactListViewModel(sObjectDataManager: sObjectDataManager, presentNewContact: newContact)
     }
 
     var body: some View {
@@ -60,6 +60,11 @@ struct ContactListView: View {
                         }
                     }
                     .id(UUID())
+                }
+                .onChange(of: selectedRecord) { newValue in
+                                   if let newValue = newValue {
+                                        viewModel.contactSelected(id: newValue)
+                                    }
                 }
                 if viewModel.alertContent != nil {
                     StatusAlert(viewModel: viewModel)
@@ -154,7 +159,7 @@ enum ModalAction: Identifiable {
 }
 
 struct NavBarButtons: View {
-    var viewModel: ContactListViewModel
+    @ObservedObject var viewModel: ContactListViewModel
     @State private var modalPresented: ModalAction?
     @State private var newContactPresented = false
     @State private var actionSheetPresented = false
@@ -163,9 +168,9 @@ struct NavBarButtons: View {
 
     var body: some View {
         HStack {
-            NavigationLink(destination: ContactDetailView(contact: nil, sObjectDataManager: self.viewModel.sObjectDataManager), isActive: $newContactPresented, label: { EmptyView() })
+            NavigationLink(destination: ContactDetailView(contact: nil, sObjectDataManager: self.viewModel.sObjectDataManager), isActive: $viewModel.presentNewContact, label: { EmptyView() })
             Button(action: {
-                self.newContactPresented = true
+                viewModel.newContactToggled()
             }, label: { Image("plusButton").renderingMode(.template) })
             Button(action: {
                 self.viewModel.syncUpDown()

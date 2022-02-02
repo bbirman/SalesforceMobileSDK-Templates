@@ -492,6 +492,26 @@ class SObjectDataManager: ObservableObject {
         }
     }
     
+        func localRecords(soupIDs: [String]) -> [WidgetContact]? {
+            let ids2 = soupIDs.map { "'\($0)'" }
+            let idString = ids2.joined(separator: ", ")
+            //Id, FirstName, LastName
+            let queryResult = store.query("select {\(dataSpec.soupName):_soupEntryId}, {\(dataSpec.soupName):FirstName}, {\(dataSpec.soupName):LastName} from {\(dataSpec.soupName)} where {\(dataSpec.soupName):_soupEntryId} IN (\(idString))")
+            switch queryResult {
+            case .success(let results):
+                return results.compactMap { record -> WidgetContact? in
+                    guard let record = record as? [Any], let id = record[0] as? Int64 else {
+                        return nil
+                    }
+                    return WidgetContact(id: String(id), firstName: record[1] as? String, lastName: record[2] as? String)
+                }
+
+            case .failure(let error):
+                MobileSyncLogger.e(SObjectDataManager.self, message: "Error getting local records: \(error)")
+                return nil
+            }
+        }
+    
     deinit {
         cancellableSet.forEach { $0.cancel() }
     }

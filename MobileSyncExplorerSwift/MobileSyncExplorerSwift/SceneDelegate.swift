@@ -79,10 +79,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         if let userActivity = userActivity, userActivity.title == openDetailPath,
            let selectionId = userActivity.userInfo?[openDetailRecordIdKey] as? String {
-            let list = ContactListView(selectedRecord: selectionId, sObjectDataManager: sObjectManager)
+            let list = ContactListView(sObjectDataManager: sObjectManager, selectedRecord: selectionId)
             self.window?.rootViewController = UIHostingController(rootView: list)
         } else {
-            self.window?.rootViewController = UIHostingController(rootView: ContactListView(selectedRecord: nil, sObjectDataManager: sObjectManager))
+            self.window?.rootViewController = UIHostingController(rootView: ContactListView(sObjectDataManager: sObjectManager))
         }
     }
 

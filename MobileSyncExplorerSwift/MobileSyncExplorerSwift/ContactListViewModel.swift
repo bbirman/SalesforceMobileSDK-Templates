@@ -29,6 +29,7 @@ import Foundation
 import MobileSync
 import SwiftUI
 import Combine
+import WidgetKit
 
 struct AlertContent: Identifiable {
      var id = UUID()
@@ -46,18 +47,49 @@ let openDetailRecordIdKey = "recordId"
 class ContactListViewModel: ObservableObject {
     @Published var alertContent: AlertContent?
     @ObservedObject var sObjectDataManager: SObjectDataManager
+    @Published var presentNewContact: Bool
+    private var recentContacts = Set<String>()
     var anyCancellable: AnyCancellable?
 
-    init(sObjectDataManager: SObjectDataManager) {
+    init(sObjectDataManager: SObjectDataManager, presentNewContact: Bool) {
         self.sObjectDataManager = sObjectDataManager
+        self.presentNewContact = presentNewContact
         anyCancellable = sObjectDataManager.objectWillChange.sink { [weak self] in
             self?.objectWillChange.send()
         }
+        
         self.syncUpDown()
+        NotificationCenter.default.addObserver(self, selector: #selector(persistRecentContacts), name: UIApplication.willResignActiveNotification, object: nil)
     }
     
     deinit {
         anyCancellable?.cancel()
+    }
+    
+    func newContactToggled() {
+        presentNewContact = true
+    }
+    
+    func contactSelected(id: String) {
+        recentContacts.insert(id)
+    }
+    
+    @objc private func persistRecentContacts() {
+        guard let records = sObjectDataManager.localRecords(soupIDs: Array(recentContacts)), !records.isEmpty else {
+            return
+        }
+    
+        let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.salesforce.mobilesyncexplorer")!.appendingPathComponent("contents.json")
+        let encoder = JSONEncoder()
+        if let dataToSave = try? encoder.encode(records) {
+            do {
+                try dataToSave.write(to: url)
+            } catch {
+                print("Error: Can't write contents")
+                return
+            }
+        }
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func syncUpDown() {

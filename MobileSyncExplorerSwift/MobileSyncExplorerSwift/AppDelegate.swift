@@ -26,6 +26,7 @@ import Foundation
 import UIKit
 import MobileSync
 import SwiftUI
+import WidgetKit
 
 class AppDelegate : UIResponder, UIApplicationDelegate {
     
@@ -100,6 +101,10 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error ) {
         // Respond to any push notification registration errors here.
+    }
+    
+    func applicationWillResignActive(_ application: UIApplication) {
+        WidgetCenter.shared.reloadAllTimelines()
     }
     
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey
