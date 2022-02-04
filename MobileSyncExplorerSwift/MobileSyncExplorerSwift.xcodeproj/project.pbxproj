@@ -14,6 +14,9 @@
 		6967D6ED24806EBB001B0046 /* NotificationListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6967D6EC24806EBB001B0046 /* NotificationListModel.swift */; };
 		69B257B1240DABAF00CBCF1A /* ContactDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69B257B0240DABAF00CBCF1A /* ContactDetail.swift */; };
 		69BC2FF024B4437E0091658C /* NotificationList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69BC2FEF24B4437E0091658C /* NotificationList.swift */; };
+		69C5451727ACF67700864C01 /* ContactHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76D656C20B3323A00B55764 /* ContactHelpers.swift */; };
+		69C5451827ACF68C00864C01 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76D656920B3323A00B55764 /* Constants.swift */; };
+		69C5451927ACF69E00864C01 /* Fonts+helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76D656A20B3323A00B55764 /* Fonts+helper.swift */; };
 		69CDE97325CE6B510025C3FC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69CDE97225CE6B510025C3FC /* SceneDelegate.swift */; };
 		69D6B29727AA5E3A008902E0 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69D6B29627AA5E3A008902E0 /* WidgetKit.framework */; };
 		69D6B29927AA5E3A008902E0 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 69D6B29827AA5E3A008902E0 /* SwiftUI.framework */; };
@@ -439,7 +442,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				69D6B2AE27AA606E008902E0 /* WidgetContact.swift in Sources */,
+				69C5451727ACF67700864C01 /* ContactHelpers.swift in Sources */,
 				69D6B29C27AA5E3A008902E0 /* RecentContacts.swift in Sources */,
+				69C5451827ACF68C00864C01 /* Constants.swift in Sources */,
+				69C5451927ACF69E00864C01 /* Fonts+helper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -571,6 +577,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MobileSyncExplorerSwift/MobileSyncExplorerSwift.entitlements;
+				DEVELOPMENT_TEAM = XD7TD9S6ZU;
 				INFOPLIST_FILE = MobileSyncExplorerSwift/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -578,7 +585,7 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_SWIFT_FLAGS = "-DSIGNPOST_ENABLED";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.salesforce.mobilesdk.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "MobileSyncExplorerSwift/Bridging-Header.h";
@@ -593,13 +600,14 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MobileSyncExplorerSwift/MobileSyncExplorerSwift.entitlements;
+				DEVELOPMENT_TEAM = XD7TD9S6ZU;
 				INFOPLIST_FILE = MobileSyncExplorerSwift/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.salesforce.mobilesdk.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "MobileSyncExplorerSwift/Bridging-Header.h";
@@ -623,6 +631,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = XD7TD9S6ZU;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RecentContacts/Info.plist;
@@ -637,7 +646,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.mobilesdk.MobileSyncExplorerSwift.RecentContacts;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapp.RecentContacts;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = YES;
@@ -663,6 +672,7 @@
 				CODE_SIGN_ENTITLEMENTS = RecentContactsExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = XD7TD9S6ZU;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = RecentContacts/Info.plist;
@@ -676,7 +686,7 @@
 				);
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.mobilesdk.MobileSyncExplorerSwift.RecentContacts;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapp.RecentContacts;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTS_MACCATALYST = YES;

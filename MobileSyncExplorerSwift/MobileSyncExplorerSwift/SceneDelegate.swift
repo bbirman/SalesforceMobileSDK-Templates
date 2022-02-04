@@ -50,6 +50,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
     
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        
+        let sObjectManager = SObjectDataManager.sharedInstance(for: UserAccountManager.shared.currentUserAccount!)
+        
+        if let url = URLContexts.first?.url {
+            if url.absoluteString.contains("newContact") {
+                self.window?.rootViewController = UIHostingController(rootView: ContactListView(sObjectDataManager: sObjectManager, newContact: true))
+            } else if url.absoluteString.contains("contact/") {
+                if let idx = url.absoluteString.lastIndex(of: "/") {
+                    let id =  url.absoluteString.substring(from: idx).replacingOccurrences(of: "/", with: "")
+                    self.window?.rootViewController = UIHostingController(rootView: ContactListView(sObjectDataManager: sObjectManager, selectedRecord: id))
+                }
+               
+                
+            } else if url.absoluteString.contains("search") {
+                self.window?.rootViewController = UIHostingController(rootView: ContactListView(sObjectDataManager: sObjectManager, searchFocused: true))
+            }
+        }
+
         // Uncomment following block to enable IDP Login flow
 //        if let urlContext = URLContexts.first {
 //            self.enableIDPLoginFlowForURLContext(urlContext, scene: scene)
@@ -82,7 +100,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let list = ContactListView(sObjectDataManager: sObjectManager, selectedRecord: selectionId)
             self.window?.rootViewController = UIHostingController(rootView: list)
         } else {
-            self.window?.rootViewController = UIHostingController(rootView: ContactListView(sObjectDataManager: sObjectManager))
+            let list = ContactListView(sObjectDataManager: sObjectManager)
+            self.window?.rootViewController = UIHostingController(rootView: list)
         }
     }
 

@@ -28,19 +28,13 @@ struct Helper {
 
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
-        let url = FileManager.default.containerURL(
-             forSecurityApplicationGroupIdentifier: "group.com.salesforce.mobilesyncexplorer")!.appendingPathComponent("contents.json")
-        return SimpleEntry(date: Date(), contacts: [WidgetContact(id: "999", firstName: "placeholder", lastName: "")])
+       return SimpleEntry(date: Date(), contacts: [WidgetContact(id: "999", firstName: "placeholder", lastName: "")])
         
     }
 
     func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let url = FileManager.default.containerURL(
-             forSecurityApplicationGroupIdentifier: "group.com.salesforce.mobilesyncexplorer")!.appendingPathComponent("contents.json")
         completion(SimpleEntry(date: Date(), contacts: [WidgetContact(id: "999", firstName: "snapshot", lastName: "")]))
     }
-
-    
     
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let url = FileManager.default.containerURL(
@@ -72,13 +66,35 @@ struct SimpleEntry: TimelineEntry {
     var contacts: [WidgetContact]?
 }
 
+
+struct Cell : View {
+    let image: Image
+    let text: String
+    let url: URL
+    
+    var body: some View {
+        
+        Link(destination: url) {
+            HStack {
+                image
+                Text(text)
+                    .fontWeight(.medium)
+                    .multilineTextAlignment(.center)
+            }.padding(10)
+        }.frame(width: 125, height: 50, alignment: .leading)
+        
+        .background(Color(uiColor: .systemFill))
+        .cornerRadius(20)
+    }
+}
+
 struct RecentContactsEntryView : View {
     var entry: Provider.Entry
     
     func displayName(for contact: WidgetContact) -> String {
-        if let lastInitial = contact.lastName?.first {
-            return "\(contact.firstName ?? "") \(lastInitial)."
-        }
+//        if let lastInitial = contact.lastName?.first {
+//            return "\(contact.firstName ?? "") \(lastInitial)."
+//        }
         return "\(contact.firstName ?? "")"
     }
     
@@ -88,35 +104,23 @@ struct RecentContactsEntryView : View {
 
     var body: some View {
         let columns = [
-            GridItem(.adaptive(minimum: 80, maximum: 90), spacing: 15, alignment: .center)
+            GridItem(.adaptive(minimum: 125, maximum: 140), spacing: 5, alignment: .center)
         ]
-       
-        ZStack {
-              //  Color(red: 0, green: 158/255, blue: 219/255, opacity: 0.2)
-                //Color(.black).opacity(0.2)
-           // VisualEffectBlur(blurStyle: .systemMaterial)
-            
-            if let contacts = entry.contacts {
-                LazyVGrid(columns: columns, alignment: .center, spacing: 35) {
-                    ForEach(contacts, id: \.self) { contact in
-                        Link(destination: URL(string: "mobilesyncexplorerswift://newContact")!) {
-                        VStack {
-//                            Image(uiImage:
-//                                    ContactHelper.initialsImage(
-//                                        ContactHelper.colorFromContact(lastName: contact.lastName),
-//                                        initials: ContactHelper.initialsStringFromContact(firstName: contact.firstName, lastName: contact.lastName), alpha: 0.2, diameter: 60.0)!)
 
-                            HStack {
-                                Text(displayName(for: contact))
-                                    .fontWeight(.medium)
-                                    .multilineTextAlignment(.center)
-                            }
-                        }//.widgetURL(URL(string: "mobilesyncexplorerswift://newContact"))
-                        }
+        VStack {
+            Link(destination: URL(string: "mobilesyncexplorerswift://search")!) {
+                Text("Search")
+            }
+            LazyVGrid(columns: columns, alignment: .center, spacing: 20) {
+                if let contacts = entry.contacts {
+                    ForEach(contacts, id: \.self) { contact in
+                        Cell(image: Image(uiImage:
+                                            ContactHelper.initialsImage(
+                                                ContactHelper.colorFromContact(lastName: contact.lastName),
+                                                initials: ContactHelper.initialsStringFromContact(firstName: contact.firstName, lastName: contact.lastName), alpha: 0.2, diameter: 30.0)!), text: displayName(for: contact), url: URL(string: "mobilesyncexplorerswift://contact/\(contact.id)")!)
                     }
-                    
-                    // .frame(minHeight: 90, maxHeight: 90)
                 }
+                Cell(image: .init(systemName: "plus.circle"), text: "New", url: URL(string: "mobilesyncexplorerswift://newContact")!) // TODO: show even if contacts are empty
             }
         }
     }

@@ -47,13 +47,17 @@ let openDetailRecordIdKey = "recordId"
 class ContactListViewModel: ObservableObject {
     @Published var alertContent: AlertContent?
     @ObservedObject var sObjectDataManager: SObjectDataManager
-    @Published var presentNewContact: Bool
+    @Published var selectedRecord: String?
+    @Published var showContactDetail: Bool = false
     private var recentContacts = Set<String>()
     var anyCancellable: AnyCancellable?
 
-    init(sObjectDataManager: SObjectDataManager, presentNewContact: Bool) {
+    init(sObjectDataManager: SObjectDataManager, presentNewContact: Bool, selectedRecord: String? = nil) {
         self.sObjectDataManager = sObjectDataManager
-        self.presentNewContact = presentNewContact
+        if presentNewContact || selectedRecord != nil {
+            self.showContactDetail = true
+        }
+        self.selectedRecord = selectedRecord
         anyCancellable = sObjectDataManager.objectWillChange.sink { [weak self] in
             self?.objectWillChange.send()
         }
@@ -67,11 +71,19 @@ class ContactListViewModel: ObservableObject {
     }
     
     func newContactToggled() {
-        presentNewContact = true
+        showContactDetail = true
+        selectedRecord = nil
     }
     
     func contactSelected(id: String) {
+        showContactDetail = true
+        selectedRecord = id
         recentContacts.insert(id)
+    }
+    
+    func dismissDetail() {
+        showContactDetail = false
+        selectedRecord = nil
     }
     
     @objc private func persistRecentContacts() {

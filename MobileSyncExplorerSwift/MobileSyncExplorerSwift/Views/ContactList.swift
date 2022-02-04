@@ -32,39 +32,41 @@ struct ContactListView: View {
     @ObservedObject private var viewModel: ContactListViewModel
     private var notificationModel = NotificationListModel()
     @State private var searchTerm: String = ""
-    @State var selectedRecord: String? = nil
+    //@available(iOS 15.0, *) @FocusState private var searchFocused: Bool
+   
     
-    init(sObjectDataManager: SObjectDataManager, selectedRecord: String? = nil, newContact: Bool = false) {
-        self._selectedRecord = State(initialValue: selectedRecord)
-        self.viewModel = ContactListViewModel(sObjectDataManager: sObjectDataManager, presentNewContact: newContact)
+    init(sObjectDataManager: SObjectDataManager, selectedRecord: String? = nil, newContact: Bool = false, searchFocused: Bool = false) {
+        self.viewModel = ContactListViewModel(sObjectDataManager: sObjectDataManager, presentNewContact: newContact, selectedRecord: selectedRecord)
+//        if #available(iOS 15.0, *) {
+//            self.searchFocused = searchFocused
+//        }
     }
-
+    
     var body: some View {
         NavigationView {
             ZStack {
                 VStack {
-                    SearchBar(text: self.$searchTerm)
+//                    if #available(iOS 15.0, *) {
+//                        SearchBar(text: self.$searchTerm).focused($searchFocused)
+//                    } else {
+                        SearchBar(text: self.$searchTerm)
+                   // }
+
                     List {
                         ForEach(viewModel.sObjectDataManager.contacts.filter { contact in
                             self.searchTerm.isEmpty ? true : self.viewModel.contactMatchesSearchTerm(contact: contact, searchTerm: self.searchTerm)
                         }) { contact in
-                            NavigationLink(destination: ContactDetailView(contact: contact, sObjectDataManager: self.viewModel.sObjectDataManager, dismiss: { self.selectedRecord = nil }), tag: contact.id.stringValue, selection: $selectedRecord) {
-                                if #available(iOS 14.0, *) {
-                                    ContactCell(contact: contact)
-                                        .onDrag { return viewModel.itemProvider(contact: contact) }
-                                } else {
-                                    ContactCell(contact: contact)
-                                }
+                            Button {
+                                viewModel.contactSelected(id: contact.id.stringValue)
+                            } label: {
+                                ContactCell(contact: contact)
+                                    .onDrag { return viewModel.itemProvider(contact: contact) }
                             }
-                            .listRowBackground(SObjectDataManager.dataLocallyDeleted(contact) ? Color.contactCellDeletedBackground : Color.clear)
+                            .listRowBackground(SObjectDataManager.dataLocallyDeleted(contact) ? Color.contactCellDeletedBackground : .clear)
                         }
                     }
                     .id(UUID())
-                }
-                .onChange(of: selectedRecord) { newValue in
-                                   if let newValue = newValue {
-                                        viewModel.contactSelected(id: newValue)
-                                    }
+                    NavigationLink(destination: ContactDetailView(localId: viewModel.selectedRecord, sObjectDataManager: self.viewModel.sObjectDataManager, dismiss: { self.viewModel.dismissDetail()}), isActive: $viewModel.showContactDetail) { EmptyView() }
                 }
                 if viewModel.alertContent != nil {
                     StatusAlert(viewModel: viewModel)
@@ -160,15 +162,13 @@ enum ModalAction: Identifiable {
 
 struct NavBarButtons: View {
     @ObservedObject var viewModel: ContactListViewModel
+    @ObservedObject var notificationModel: NotificationListModel
     @State private var modalPresented: ModalAction?
-    @State private var newContactPresented = false
     @State private var actionSheetPresented = false
     @State private var logoutAlertPresented = false
-    @ObservedObject var notificationModel: NotificationListModel
 
     var body: some View {
         HStack {
-            NavigationLink(destination: ContactDetailView(contact: nil, sObjectDataManager: self.viewModel.sObjectDataManager), isActive: $viewModel.presentNewContact, label: { EmptyView() })
             Button(action: {
                 viewModel.newContactToggled()
             }, label: { Image("plusButton").renderingMode(.template) })
@@ -260,10 +260,10 @@ struct ContactCell: View {
 
     var body: some View {
         HStack {
-            Image(uiImage: ContactHelper.initialsImage(ContactHelper.colorFromContact(contact), initials: ContactHelper.initialsStringFromContact(contact))!)
+            Image(uiImage: ContactHelper.initialsImage(ContactHelper.colorFromContact(lastName: contact.lastName), initials: ContactHelper.initialsStringFromContact(firstName: contact.firstName, lastName: contact.lastName))!)
             VStack(alignment: .leading) {
-                Text(ContactHelper.nameStringFromContact(contact)).font(.appRegularFont(16))
-                Text(ContactHelper.titleStringFromContact(contact)).font(.appRegularFont(12)).foregroundColor(.secondaryLabelText)
+                Text(ContactHelper.nameStringFromContact(firstName: contact.firstName, lastName: contact.lastName)).font(.appRegularFont(16))
+                Text(ContactHelper.titleStringFromContact(title: contact.title)).font(.appRegularFont(12)).foregroundColor(.secondaryLabelText)
             }
             Spacer()
             if SObjectDataManager.dataLocallyUpdated(contact) {
@@ -290,8 +290,23 @@ struct SearchBar: UIViewRepresentable {
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
             text = searchText
         }
+        
+//        override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator) {
+//                pressDelegate?.focus(focused: isFocused)
+//            }
+//
+//            required init?(coder: NSCoder) {
+//                fatalError("init(coder:) has not been implemented")
+//            }
+//
+//            override var canBecomeFocused: Bool {
+//                return true
+//            }
     }
 
+    
+    
+    
     func makeCoordinator() -> Coordinator {
         return Coordinator(text: $text)
     }
@@ -300,10 +315,16 @@ struct SearchBar: UIViewRepresentable {
         let searchBar = UISearchBar()
         searchBar.placeholder = "Search"
         searchBar.delegate = context.coordinator
+        if #available(iOS 15.0, *) {
+            searchBar.focusEffect = UIFocusHaloEffect()
+        }
         return searchBar
     }
 
     func updateUIView(_ uiView: UISearchBar, context: UIViewRepresentableContext<SearchBar>) {
+        if #available(iOS 15.0, *) {
+            uiView.focusEffect = UIFocusHaloEffect()
+        }
         uiView.text = text
     }
 }
@@ -322,11 +343,11 @@ struct InspectorViewControllerWrapper: UIViewControllerRepresentable {
 
 struct SalesforceUserManagementViewControllerWrapper: UIViewControllerRepresentable {
     typealias UIViewControllerType = SalesforceUserManagementViewController
-    @Environment(\.presentationMode) var presentationMode
+   // @Environment(\.presentationMode) var presentationMode
 
     func makeUIViewController(context: UIViewControllerRepresentableContext<SalesforceUserManagementViewControllerWrapper>) -> SalesforceUserManagementViewControllerWrapper.UIViewControllerType {
         return SalesforceUserManagementViewController { _ in
-            self.presentationMode.wrappedValue.dismiss()
+          //  self.presentationMode.wrappedValue.dismiss()
         }
     }
 

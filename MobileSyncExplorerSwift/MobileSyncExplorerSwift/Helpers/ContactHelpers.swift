@@ -31,9 +31,9 @@ import Foundation
 import UIKit.UIColor
 
 class ContactHelper {
-    static func nameStringFromContact(_ obj: ContactSObjectData) -> String {
-        let firstName = obj.firstName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lastName = obj.lastName?.trimmingCharacters(in: .whitespacesAndNewlines)
+    static func nameStringFromContact(firstName: String?, lastName: String?) -> String {
+        let firstName = firstName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lastName = lastName?.trimmingCharacters(in: .whitespacesAndNewlines)
         if firstName == nil && lastName == nil {
             return ""
         } else if firstName == nil && lastName != nil {
@@ -45,14 +45,14 @@ class ContactHelper {
         }
     }
     
-    static func titleStringFromContact(_ obj: ContactSObjectData) -> String {
-        let title = obj.title?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return title != nil ? title! : ""
+    static func titleStringFromContact(title: String?) -> String {
+        let title = title?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return title ?? ""
     }
     
-    static func initialsStringFromContact(_ obj: ContactSObjectData) -> String {
-        let firstName = obj.firstName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let lastName = obj.lastName?.trimmingCharacters(in: .whitespacesAndNewlines)
+    static func initialsStringFromContact(firstName: String?, lastName: String?) -> String {
+        let firstName = firstName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lastName = lastName?.trimmingCharacters(in: .whitespacesAndNewlines)
         var initialsString = ""
         if let first = firstName, first.count > 0, let firstChar = first.first {
             initialsString.append(firstChar)
@@ -64,8 +64,8 @@ class ContactHelper {
         return initialsString
     }
     
-    static func colorFromContact(_ obj: ContactSObjectData) -> UIColor {
-        guard let lastName = obj.lastName?.trimmingCharacters(in: .whitespacesAndNewlines) else {
+    static func colorFromContact(lastName: String?) -> UIColor {
+        guard let lastName = lastName?.trimmingCharacters(in: .whitespacesAndNewlines) else {
             return UIColor.white
         }
         var codeSeedFromName:UInt32 = 0
@@ -85,12 +85,12 @@ class ContactHelper {
                        alpha: 1.0)
     }
     
-    static func initialsImage(_ color:UIColor, initials:String) -> UIImage? {
-        UIGraphicsBeginImageContext(CGSize(width: Constants.ContactCellImageSize, height: Constants.ContactCellImageSize))
-        let fillColor = color.withAlphaComponent(0.1)
+    static func initialsImage(_ color: UIColor, initials: String, alpha: CGFloat = 0.1, diameter: CGFloat = 48.0) -> UIImage? {
+        UIGraphicsBeginImageContext(CGSize(width: diameter, height: diameter))
+        let fillColor = color.withAlphaComponent(alpha)
         guard let ctx = UIGraphicsGetCurrentContext() else {return UIImage()}
         UIGraphicsPushContext(ctx)
-        let radius = Constants.ContactCellImageSize/2.0
+        let radius = diameter/2.0
         let center = CGPoint(x: radius, y: radius)
         ctx.setFillColor(fillColor.cgColor)
         ctx.beginPath()
@@ -98,7 +98,7 @@ class ContactHelper {
         ctx.fillPath()
         
         let string = initials as NSString
-        let attribs:[NSAttributedString.Key: Any] = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: UIFont.appRegularFont(19.0)]
+        let attribs:[NSAttributedString.Key: Any] = [NSAttributedString.Key.foregroundColor: color, NSAttributedString.Key.font: UIFont.appRegularFont(13.0)]
         let size = string.size(withAttributes: attribs)
         let rect = CGRect(x: center.x - (size.width / 2.0), y: center.y - (size.height / 2.0), width: size.width, height: size.height)
         string.draw(in: rect, withAttributes: attribs)
@@ -112,3 +112,4 @@ class ContactHelper {
         return image
     }
 }
+

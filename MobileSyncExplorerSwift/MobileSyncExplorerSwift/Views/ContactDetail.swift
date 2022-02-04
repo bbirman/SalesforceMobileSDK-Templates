@@ -79,27 +79,22 @@ struct EditView: View {
 }
 
 struct ContactDetailView: View {
-    @Environment(\.presentationMode) var presentationMode
     @ObservedObject private var viewModel: ContactDetailViewModel
     @State private var isEditing: Bool = false
     private var onAppearAction: () -> Void = {}
     private var dismissAction: () -> Void = {}
 
-    init(contactId: String, sObjectDataManager: SObjectDataManager, onAppear: @escaping () -> Void) {
-        self.viewModel = ContactDetailViewModel(contactId: contactId, sObjectDataManager: sObjectDataManager)
+    init(targetId: String, sObjectDataManager: SObjectDataManager, onAppear: @escaping () -> Void) {
+        self.viewModel = ContactDetailViewModel(contactId: targetId, sObjectDataManager: sObjectDataManager)
         self.onAppearAction = onAppear
     }
-
-    init(contact: ContactSObjectData?, sObjectDataManager: SObjectDataManager) {
-        self.viewModel = ContactDetailViewModel(contact: contact, sObjectDataManager: sObjectDataManager)
+    
+    init(localId: String?, sObjectDataManager: SObjectDataManager, dismiss: @escaping () -> Void) {
+        self.viewModel = ContactDetailViewModel(localId: localId, sObjectDataManager: sObjectDataManager)
+        self.dismissAction = dismiss
         if viewModel.isNewContact {
             self._isEditing = State(initialValue: true)
         }
-    }
-    
-    init(contact: ContactSObjectData, sObjectDataManager: SObjectDataManager, dismiss: @escaping () -> Void) {
-        self.viewModel = ContactDetailViewModel(contact: contact, sObjectDataManager: sObjectDataManager)
-        self.dismissAction = dismiss
     }
 
     var body: some View {
@@ -112,7 +107,7 @@ struct ContactDetailView: View {
             Spacer()
             DeleteButton(label: viewModel.deleteButtonTitle(), isDisabled: viewModel.isNewContact) {
                 self.viewModel.deleteButtonTapped()
-                self.presentationMode.wrappedValue.dismiss()
+                self.dismissAction()
             }
         }.onAppear {
             self.onAppearAction()
@@ -126,7 +121,6 @@ struct ContactDetailView: View {
                        self.isEditing.toggle()
                     }
                 } else {
-                    self.presentationMode.wrappedValue.dismiss()
                     self.dismissAction()
                 }
             }, label: {
@@ -143,9 +137,7 @@ struct ContactDetailView: View {
             Button(action: {
                 if self.isEditing {
                     self.viewModel.saveButtonTapped()
-                    if self.viewModel.isNewContact {
-                        self.presentationMode.wrappedValue.dismiss()
-                    }
+                    self.dismissAction()
                 }
                 withAnimation {
                    self.isEditing.toggle()
