@@ -37,6 +37,177 @@ enum ContactConstants {
     static let kContactEmailField        = "Email"
     static let kContactDepartmentField   = "Department"
     static let kContactHomePhoneField    = "HomePhone"
+    static let kContactAccountIdField    = "AccountId"
+}
+
+enum AccountConstants {
+    static let kAccountNameField        = "Name"
+    static let kAccountIndustryField    = "Industry"
+    static let kAccountPhoneField       = "Phone"
+    static let kAccountWebsiteField     = "Website"
+//    static let kAccountOpportunityIdField = "OpportunityId"
+}
+
+enum OpportunityConstants {
+    static let kOpportunityNameField        = "Name"
+    static let kOpportunityDescriptionField     = "Description"
+    static let kOpportunityAmountField    = "Amount"
+    static let kOpportunityCloseDateField       = "CloseDate"
+    static let kOpportunityAccountIdField    = "AccountId"
+
+}
+
+class OpportunitySObjectData: SObjectData, Identifiable {
+    var name: String? {
+        get {
+            return super.nonNullFieldValue(OpportunityConstants.kOpportunityNameField) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: OpportunityConstants.kOpportunityNameField, fieldValue: newValue)
+        }
+    }
+    
+    var description: String? {
+        get {
+            return super.nonNullFieldValue(OpportunityConstants.kOpportunityDescriptionField) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: OpportunityConstants.kOpportunityDescriptionField, fieldValue: newValue)
+        }
+    }
+    
+    var amount: String? {
+        get {
+            return super.nonNullFieldValue(OpportunityConstants.kOpportunityAmountField ) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: OpportunityConstants.kOpportunityAmountField, fieldValue: newValue)
+        }
+    }
+    
+    var closeDate: String? {
+        get {
+            return super.nonNullFieldValue(OpportunityConstants.kOpportunityCloseDateField) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: OpportunityConstants.kOpportunityCloseDateField, fieldValue: newValue)
+        }
+    }
+    
+    
+    var lastModifiedDate: String? {
+        get {
+            return super.nonNullFieldValue(kLastModifiedDate) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: kLastModifiedDate, fieldValue: newValue)
+        }
+    }
+    
+    var accountId: String? {
+        get {
+            return super.nonNullFieldValue(OpportunityConstants.kOpportunityAccountIdField) as? String
+        }
+    }
+    
+    
+    var id: NSNumber {
+        return super.nonNullFieldValue("_soupEntryId") as! NSNumber
+    }
+    
+    override init(soupDict: [String: Any]?) {
+        super.init(soupDict: soupDict)
+    }
+    
+    override init() {
+        super.init()
+    }
+    
+    override class func dataSpec() -> SObjectDataSpec? {
+        var sDataSpec: OpportunitySObjectDataSpec? = nil
+        if sDataSpec == nil {
+            sDataSpec = OpportunitySObjectDataSpec()
+        }
+        return sDataSpec
+    }
+}
+
+
+class AccountSObjectData: SObjectData, Identifiable {
+    var name: String? {
+        get {
+            return super.nonNullFieldValue(AccountConstants.kAccountNameField) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: AccountConstants.kAccountNameField, fieldValue: newValue)
+        }
+    }
+    
+    var industry: String? {
+        get {
+            return super.nonNullFieldValue(AccountConstants.kAccountIndustryField) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: AccountConstants.kAccountIndustryField, fieldValue: newValue)
+        }
+    }
+    
+    var phone: String? {
+        get {
+            return super.nonNullFieldValue(AccountConstants.kAccountPhoneField ) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: AccountConstants.kAccountPhoneField, fieldValue: newValue)
+        }
+    }
+    
+    var website: String? {
+        get {
+            return super.nonNullFieldValue(AccountConstants.kAccountWebsiteField) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: AccountConstants.kAccountWebsiteField, fieldValue: newValue)
+        }
+    }
+    
+//    var opportunityId: String? {
+//        get {
+//            return super.nonNullFieldValue(AccountConstants.kAccountOpportunityIdField) as? String
+//        }
+//    }
+    
+    var lastModifiedDate: String? {
+        get {
+            return super.nonNullFieldValue(kLastModifiedDate) as? String
+        }
+        set {
+            super.updateSoup(forFieldName: kLastModifiedDate, fieldValue: newValue)
+        }
+    }
+    
+    var id: NSNumber {
+        return super.nonNullFieldValue("_soupEntryId") as! NSNumber
+    }
+    
+    var externalId: String? {
+        return super.nonNullFieldValue("Id") as? String
+    }
+    
+    override init(soupDict: [String: Any]?) {
+        super.init(soupDict: soupDict)
+    }
+    
+    override init() {
+        super.init()
+    }
+    
+    override class func dataSpec() -> SObjectDataSpec? {
+        var sDataSpec: AccountSObjectDataSpec? = nil
+        if sDataSpec == nil {
+            sDataSpec = AccountSObjectDataSpec()
+        }
+        return sDataSpec
+    }
 }
 
 class ContactSObjectData: SObjectData, Identifiable {
@@ -112,6 +283,12 @@ class ContactSObjectData: SObjectData, Identifiable {
         }
     }
     
+    var accountId: String? {
+        get {
+            return super.nonNullFieldValue(ContactConstants.kContactAccountIdField) as? String
+        }
+    }
+    
     var id: NSNumber {
         return super.nonNullFieldValue("_soupEntryId") as! NSNumber
     }
@@ -144,7 +321,8 @@ class ContactSObjectDataSpec: SObjectDataSpec {
             SObjectDataFieldSpec(fieldName: ContactConstants.kContactMobilePhoneField, searchable: false),
             SObjectDataFieldSpec(fieldName: ContactConstants.kContactEmailField, searchable: false),
             SObjectDataFieldSpec(fieldName: ContactConstants.kContactDepartmentField, searchable: false),
-            SObjectDataFieldSpec(fieldName: ContactConstants.kContactHomePhoneField, searchable: false)
+            SObjectDataFieldSpec(fieldName: ContactConstants.kContactHomePhoneField, searchable: false),
+            SObjectDataFieldSpec(fieldName: ContactConstants.kContactAccountIdField, searchable: false)
         ]
         let soupName = "contacts"
         let orderByFieldName: String  = ContactConstants.kContactLastNameField
@@ -153,5 +331,50 @@ class ContactSObjectDataSpec: SObjectDataSpec {
     
     override class func createSObjectData(_ soupDict: [String : Any]?) throws -> SObjectData? {
         return ContactSObjectData(soupDict: soupDict)
+    }
+}
+
+
+class AccountSObjectDataSpec: SObjectDataSpec {
+    
+    convenience init() {
+        let objectType = "Account"
+        let objectFieldSpecs = [
+            SObjectDataFieldSpec(fieldName: AccountConstants.kAccountNameField, searchable: true),
+            SObjectDataFieldSpec(fieldName: AccountConstants.kAccountIndustryField, searchable: true),
+            SObjectDataFieldSpec(fieldName: AccountConstants.kAccountPhoneField, searchable: false),
+            SObjectDataFieldSpec(fieldName: AccountConstants.kAccountWebsiteField, searchable: true)
+            
+
+        ]
+        let soupName = "accounts"
+        let orderByFieldName: String = AccountConstants.kAccountNameField
+        self.init(objectType: objectType, objectFieldSpecs: objectFieldSpecs, soupName: soupName, orderByFieldName: orderByFieldName)
+    }
+    
+    override class func createSObjectData(_ soupDict: [String : Any]?) throws -> SObjectData? {
+        return AccountSObjectData(soupDict: soupDict)
+    }
+}
+
+class OpportunitySObjectDataSpec: SObjectDataSpec {
+    
+    convenience init() {
+        let objectType = "Opportunity"
+        let objectFieldSpecs = [
+            SObjectDataFieldSpec(fieldName: OpportunityConstants.kOpportunityNameField, searchable: true),
+            SObjectDataFieldSpec(fieldName: OpportunityConstants.kOpportunityDescriptionField, searchable: true),
+            SObjectDataFieldSpec(fieldName: OpportunityConstants.kOpportunityCloseDateField, searchable: false),
+            SObjectDataFieldSpec(fieldName: OpportunityConstants.kOpportunityAmountField, searchable: true)
+            
+
+        ]
+        let soupName = "opportunities"
+        let orderByFieldName: String = OpportunityConstants.kOpportunityNameField
+        self.init(objectType: objectType, objectFieldSpecs: objectFieldSpecs, soupName: soupName, orderByFieldName: orderByFieldName)
+    }
+    
+    override class func createSObjectData(_ soupDict: [String : Any]?) throws -> SObjectData? {
+        return OpportunitySObjectData(soupDict: soupDict)
     }
 }

@@ -27,18 +27,110 @@
 
 import SwiftUI
 
-struct ReadView: View {
+struct ContactReadView: View {
     var contact: ContactSObjectData
+    var account: [String: Any]?
+    let sobjectDataManager: SObjectDataManager
 
     var body: some View {
         List {
             ReadViewField(fieldName: "First Name", fieldValue: contact.firstName)
             ReadViewField(fieldName: "Last Name", fieldValue: contact.lastName)
+            ReadViewLinkField(fieldName: "Account", objectType: "Account", objectData: account, sobjectDataManager: sobjectDataManager)
             ReadViewField(fieldName: "Mobile Phone", fieldValue: contact.mobilePhone)
             ReadViewField(fieldName: "Home Phone", fieldValue: contact.homePhone)
             ReadViewField(fieldName: "Job Title", fieldValue: contact.title)
             ReadViewField(fieldName: "Email Address", fieldValue: contact.email)
             ReadViewField(fieldName: "Department", fieldValue: contact.department)
+        }
+    }
+}
+
+struct AccountReadView: View {
+    var account: AccountSObjectData
+    var opportunities: [OpportunitySObjectData]?
+    let sobjectDataManager: SObjectDataManager
+
+    var body: some View {
+        
+        List {
+            ReadViewField(fieldName: "Name", fieldValue: account.name)
+            ReadViewField(fieldName: "Industry", fieldValue: account.industry)
+            ReadViewField(fieldName: "Phone", fieldValue: account.phone)
+            ReadViewField(fieldName: "Website", fieldValue: account.website)
+            
+            if let opportunities = opportunities, !opportunities.isEmpty {
+                Section(header: Text("Related Opportunities")) {
+                    ForEach(opportunities) { opportunity in
+                        ReadViewLinkField(fieldName: nil, objectType: "Opportunity", objectData: opportunity.soupDict, sobjectDataManager: sobjectDataManager)
+                    }
+                }
+            }
+        }
+       // Spacer()
+       
+//        if let opportunities = opportunities {
+//            Text("Related Opportunities")
+//            List(opportunities) {
+////            opportunities?.forEach { opportunity in
+//                ReadViewLinkField(fieldName: "Opportunity", objectType: "Opportunity", objectData: $0.soupDict, sobjectDataManager: sobjectDataManager)
+//            }
+//        }
+        
+    }
+}
+
+struct OpportunityReadView: View {
+    var opportunity: OpportunitySObjectData
+    let sobjectDataManager: SObjectDataManager
+
+    var body: some View {
+        List {
+            ReadViewField(fieldName: "Name", fieldValue: opportunity.name)
+            ReadViewField(fieldName: "Description", fieldValue: opportunity.description)
+            ReadViewField(fieldName: "Amount", fieldValue: opportunity.amount)
+            ReadViewField(fieldName: "Close Date", fieldValue: opportunity.closeDate)
+        }
+    }
+}
+
+
+struct ReadViewLinkField: View {
+    var fieldName: String?
+    var fieldDisplayValue: String?
+    var objectType: String?
+    var objectData: [String: Any]?
+    let sobjectDataManager: SObjectDataManager
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            if let fieldDisplayValue = objectData?["Name"] as? String {
+                NavigationLink {
+                    if let recordId = objectData?["Id"] as? String {
+                        
+                    
+                        if objectType == "Account" {
+                            AccountDetailView(id: recordId, sObjectDataManager: sobjectDataManager) {
+                        
+                            }
+                        } else if objectType == "Opportunity" {
+                            OpportunityDetailView(id: recordId, sObjectDataManager: sobjectDataManager) {
+                                
+                            }
+                        }
+                    }
+//                    NavigationLink(destination: ContactDetailView(localId: viewModel.selectedRecord, sObjectDataManager: self.viewModel.sObjectDataManager, dismiss: { self.viewModel.dismissDetail()}), isActive: $viewModel.showContactDetail) { EmptyView() }
+                } label: {
+                    VStack(alignment: .leading, spacing: 3) {
+                        if let fieldName = fieldName {
+                            Text(fieldName).font(.subheadline).foregroundColor(.secondaryLabelText)
+                        }
+                        
+                        
+                        Text(fieldDisplayValue)
+                    }
+                }
+            }
         }
     }
 }
@@ -78,22 +170,155 @@ struct EditView: View {
     }
 }
 
+struct OpportunityDetailView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @ObservedObject private var viewModel: OpportunityDetailViewModel
+    @State private var isEditing: Bool = false
+    private var onAppearAction: () -> Void = {}
+    private var dismissAction: () -> Void = {}
+    private let sobjectDataManager: SObjectDataManager
+
+    init(id: String, sObjectDataManager: SObjectDataManager, onAppear: @escaping () -> Void) {
+        self.viewModel = OpportunityDetailViewModel(id: id, sObjectDataManager: sObjectDataManager)
+        self.onAppearAction = onAppear
+        self.sobjectDataManager = sObjectDataManager
+    }
+
+    var body: some View {
+        VStack {
+            OpportunityReadView(opportunity: viewModel.opportunity, sobjectDataManager: sobjectDataManager)
+           
+            Spacer()
+//            DeleteButton(label: viewModel.deleteButtonTitle(), isDisabled: viewModel.isNewRecord) {
+//                self.viewModel.deleteButtonTapped()
+//                self.dismissAction()
+//            }
+        }.onAppear {
+            self.onAppearAction()
+        }
+        .navigationBarTitle(Text(viewModel.title), displayMode: .inline)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading:
+            Button(action: {
+                if self.isEditing {
+                    withAnimation {
+                       self.isEditing.toggle()
+                    }
+                } else {
+                    self.presentationMode.wrappedValue.dismiss()
+                    self.dismissAction()
+                }
+            }, label: {
+                if self.isEditing {
+                    Text("Cancel")
+                } else {
+                    HStack {
+                        Image("backArrow")
+                            .renderingMode(.template)
+                        Text("Back")
+                    }
+                }
+            }), trailing:
+            Button(action: {
+                if self.isEditing {
+                    self.viewModel.saveButtonTapped()
+                    self.dismissAction()
+                }
+                withAnimation {
+                   self.isEditing.toggle()
+                }
+            }, label: {
+                self.isEditing ? Text("Save") : Text("Edit")
+            })
+        )
+    }
+}
+
+struct AccountDetailView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @ObservedObject private var viewModel: AccountDetailViewModel
+    @State private var isEditing: Bool = false
+    private var onAppearAction: () -> Void = {}
+    private var dismissAction: () -> Void = {}
+    private let sobjectDataManager: SObjectDataManager
+
+    init(id: String, sObjectDataManager: SObjectDataManager, onAppear: @escaping () -> Void) {
+        self.viewModel = AccountDetailViewModel(id: id, sObjectDataManager: sObjectDataManager)
+        self.onAppearAction = onAppear
+        self.sobjectDataManager = sObjectDataManager
+    }
+
+    var body: some View {
+        VStack {
+            AccountReadView(account: viewModel.account, opportunities: viewModel.opportunities, sobjectDataManager: sobjectDataManager)
+           
+            Spacer()
+//            DeleteButton(label: viewModel.deleteButtonTitle(), isDisabled: viewModel.isNewRecord) {
+//                self.viewModel.deleteButtonTapped()
+//                self.dismissAction()
+//            }
+        }.onAppear {
+            self.onAppearAction()
+        }
+        .navigationBarTitle(Text(viewModel.title), displayMode: .inline)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading:
+            Button(action: {
+                if self.isEditing {
+                    withAnimation {
+                       self.isEditing.toggle()
+                    }
+                } else {
+                    self.presentationMode.wrappedValue.dismiss()
+                    self.dismissAction()
+                }
+            }, label: {
+                if self.isEditing {
+                    Text("Cancel")
+                } else {
+                    HStack {
+                        Image("backArrow")
+                            .renderingMode(.template)
+                        Text("Back")
+                    }
+                }
+            }), trailing:
+            Button(action: {
+                if self.isEditing {
+                    self.viewModel.saveButtonTapped()
+                    self.dismissAction()
+                }
+                withAnimation {
+                   self.isEditing.toggle()
+                }
+            }, label: {
+                self.isEditing ? Text("Save") : Text("Edit")
+            })
+        )
+    }
+}
+
+
 struct ContactDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     @ObservedObject private var viewModel: ContactDetailViewModel
     @State private var isEditing: Bool = false
     private var onAppearAction: () -> Void = {}
     private var dismissAction: () -> Void = {}
+    private let sobjectDataManager: SObjectDataManager
+    
 
     init(id: String, sObjectDataManager: SObjectDataManager, onAppear: @escaping () -> Void) {
         self.viewModel = ContactDetailViewModel(id: id, sObjectDataManager: sObjectDataManager)
         self.onAppearAction = onAppear
+        self.sobjectDataManager = sObjectDataManager
     }
 
     init(localId: String?, sObjectDataManager: SObjectDataManager, dismiss: @escaping () -> Void) {
         self.viewModel = ContactDetailViewModel(localId: localId, sObjectDataManager: sObjectDataManager)
         self.dismissAction = dismiss
-        if viewModel.isNewContact {
+        self.sobjectDataManager = sObjectDataManager
+        if viewModel.isNewRecord {
             self._isEditing = State(initialValue: true)
         }
     }
@@ -103,10 +328,10 @@ struct ContactDetailView: View {
             if isEditing {
                 EditView(contact: $viewModel.contact)
             } else {
-                ReadView(contact: viewModel.contact)
+                ContactReadView(contact: viewModel.contact, account: viewModel.account, sobjectDataManager: sobjectDataManager)
             }
             Spacer()
-            DeleteButton(label: viewModel.deleteButtonTitle(), isDisabled: viewModel.isNewContact) {
+            DeleteButton(label: viewModel.deleteButtonTitle(), isDisabled: viewModel.isNewRecord) {
                 self.viewModel.deleteButtonTapped()
                 self.dismissAction()
             }

@@ -141,7 +141,7 @@ class SObjectDataSpec  {
         }
     }
     
-    var soupFieldNames :[String] {
+    var soupFieldNames: [String] {
         get {
             var retNames = [String]()
             objectFieldSpecs.forEach { (spec) in
@@ -495,6 +495,21 @@ class SObjectDataManager: ObservableObject {
         }
     }
     
+    func localRecord(id: String, soupName: String) -> [String: Any]? {
+        let queryResult = store.query("select {\(soupName):_soup} from {\(soupName)} where {\(soupName):Id} = '\(id)'")
+        switch queryResult {
+        case .success(let results):
+            guard let arr = results as? [[Any]], let soup = arr.first?.first as? [String: Any] else {
+                MobileSyncLogger.e(SObjectDataManager.self, message: "Unable to parse local record")
+                return nil
+            }
+            return soup
+        case .failure(let error):
+            MobileSyncLogger.e(SObjectDataManager.self, message: "Error getting local record: \(error)")
+            return nil
+        }
+    }
+    
     func localRecord(soupID: String) -> ContactSObjectData? {
         let queryResult = store.query("select {\(dataSpec.soupName):_soup} from {\(dataSpec.soupName)} where {\(dataSpec.soupName):_soupEntryId} = '\(soupID)'")
         switch queryResult {
@@ -504,6 +519,28 @@ class SObjectDataManager: ObservableObject {
                 return nil
             }
             return ContactSObjectData.init(soupDict: soup)
+        case .failure(let error):
+            MobileSyncLogger.e(SObjectDataManager.self, message: "Error getting local record: \(error)")
+            return nil
+        }
+    }
+    
+    func opportunitiesForAccountId(_ id: String?) -> [OpportunitySObjectData]? {
+        guard let id = id else { return nil }
+        let soupName = "opportunities"
+        let queryResult = store.query("select {\(soupName):_soup} from {\(soupName)} where {\(soupName):AccountId} = '\(id)'")
+        switch queryResult {
+        case .success(let results):
+            guard let arr = results as? [[[String: Any]]] else {
+                MobileSyncLogger.e(SObjectDataManager.self, message: "Unable to parse local record")
+                return nil
+            }
+            return arr.compactMap { nestedSoup -> OpportunitySObjectData? in
+                if let opp = nestedSoup.first {
+                    return OpportunitySObjectData(soupDict: opp)
+                }
+                return nil
+            }
         case .failure(let error):
             MobileSyncLogger.e(SObjectDataManager.self, message: "Error getting local record: \(error)")
             return nil

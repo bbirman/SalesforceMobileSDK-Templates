@@ -27,9 +27,83 @@
 
 import SwiftUI
 
+
+class OpportunityDetailViewModel: ObservableObject {
+    @Published var opportunity: OpportunitySObjectData
+    var title: String
+    private var sObjectDataManager: SObjectDataManager
+
+    init(id: String, sObjectDataManager: SObjectDataManager) {
+        self.sObjectDataManager = sObjectDataManager
+        self._opportunity = Published(initialValue: OpportunitySObjectData())
+        self.title = "Loading Account"
+        loadAccount(id: id)
+    }
+
+    func loadAccount(id: String) {
+        let account = OpportunitySObjectData(soupDict: sObjectDataManager.localRecord(id: id, soupName: "opportunities"))
+        self.opportunity = account
+        self.title = account.name ?? ""
+        
+
+//        } else {
+//            self.title = "Unable to load contact"
+//        }
+    }
+    
+    func deleteButtonTitle() -> String {
+        return "Delete Account"
+    }
+
+    func deleteButtonTapped() {
+    }
+
+    func saveButtonTapped() {
+    }
+}
+
+class AccountDetailViewModel: ObservableObject {
+    @Published var account: AccountSObjectData
+    @Published var opportunities: [OpportunitySObjectData]?
+    var title: String
+    private var sObjectDataManager: SObjectDataManager
+
+    init(id: String, sObjectDataManager: SObjectDataManager) {
+        self.sObjectDataManager = sObjectDataManager
+        self._account = Published(initialValue: AccountSObjectData())
+        self.title = "Loading Account"
+        loadAccount(id: id)
+    }
+
+    func loadAccount(id: String) {
+        let account = AccountSObjectData(soupDict: sObjectDataManager.localRecord(id: id, soupName: "accounts"))
+        self.account = account
+        self.title = account.name ?? ""
+        
+        opportunities = sObjectDataManager.opportunitiesForAccountId(account.externalId)
+//        if let accountId = account.opportunityId {
+//            opportunity = sObjectDataManager.localRecord(id: accountId, soupName: "opportunities")
+//        }
+
+    }
+    
+    func deleteButtonTitle() -> String {
+        return "Delete Account"
+    }
+
+    func deleteButtonTapped() {
+    }
+
+    func saveButtonTapped() {
+    }
+}
+
+
+
 class ContactDetailViewModel: ObservableObject {
     @Published var contact: ContactSObjectData
-    var isNewContact: Bool = false
+    @Published var account: [String: Any]?
+    var isNewRecord: Bool = false
     var title: String
     private var sObjectDataManager: SObjectDataManager
 
@@ -49,7 +123,7 @@ class ContactDetailViewModel: ObservableObject {
             loadContact(id: localId)
         } else {
             self.title = "New Contact"
-            self.isNewContact = true
+            self.isNewRecord = true
         }
     }
 
@@ -70,6 +144,10 @@ class ContactDetailViewModel: ObservableObject {
 
     func loadContact(id: String) {
         if let contact = sObjectDataManager.localRecord(soupID: id) {
+            if let accountId = contact.accountId {
+                account = sObjectDataManager.localRecord(id: accountId, soupName: "accounts")
+            }
+            
             self.contact = contact
             self.title = ContactHelper.nameStringFromContact(firstName: contact.firstName, lastName: contact.lastName)
         } else {
@@ -90,7 +168,7 @@ class ContactDetailViewModel: ObservableObject {
     }
 
     func saveButtonTapped() {
-        if self.isNewContact {
+        if self.isNewRecord {
             sObjectDataManager.createLocalData(contact)
         } else {
             sObjectDataManager.updateLocalData(contact)
