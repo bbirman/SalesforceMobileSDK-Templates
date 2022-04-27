@@ -29,6 +29,7 @@ import UIKit
 import SwiftUI
 import SalesforceSDKCore
 import MobileSync
+import WidgetKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     public var window: UIWindow?
@@ -42,6 +43,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             self.resetViewState {
                 self.setupRootViewController(userActivity: connectionOptions.userActivities.first)
             }
+        }
+        NotificationCenter.default.addObserver(forName: UserAccountManager.didLogoutUser, object: nil, queue: nil) { _ in
+            WidgetCenter.shared.reloadAllTimelines()
         }
         self.initializeAppViewState()
         AuthHelper.loginIfRequired(scene) {
