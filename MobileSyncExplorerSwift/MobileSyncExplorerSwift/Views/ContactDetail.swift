@@ -218,17 +218,6 @@ struct OpportunityDetailView: View {
                         Text("Back")
                     }
                 }
-            }), trailing:
-            Button(action: {
-                if self.isEditing {
-                    self.viewModel.saveButtonTapped()
-                    self.dismissAction()
-                }
-                withAnimation {
-                   self.isEditing.toggle()
-                }
-            }, label: {
-                self.isEditing ? Text("Save") : Text("Edit")
             })
         )
     }
@@ -282,17 +271,6 @@ struct AccountDetailView: View {
                         Text("Back")
                     }
                 }
-            }), trailing:
-            Button(action: {
-                if self.isEditing {
-                    self.viewModel.saveButtonTapped()
-                    self.dismissAction()
-                }
-                withAnimation {
-                   self.isEditing.toggle()
-                }
-            }, label: {
-                self.isEditing ? Text("Save") : Text("Edit")
             })
         )
     }
