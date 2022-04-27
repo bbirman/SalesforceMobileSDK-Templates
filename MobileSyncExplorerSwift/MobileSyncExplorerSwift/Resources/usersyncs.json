@@ -6,22 +6,22 @@
       "soupName": "contacts",
       "target": {"type":"briefcase",
           "infos": [
-                    {
-                      "sobjectType": "Contact",
-                      "fieldlist": ["FirstName", "LastName", "Title", "MobilePhone", "Email", "Department", "HomePhone, AccountId"],
-                      "soupName": "contacts"
-                    },
-                    {
-                      "sobjectType": "Account",
-                      "fieldlist": ["Name, Phone, Website, Industry"],
-                      "soupName": "accounts"
-                    },
-                    {
-                      "sobjectType": "Opportunity",
-                      "fieldlist": ["Name, Description, CloseDate, Amount, AccountId"],
-                      "soupName": "opportunities"
-                    }
-                  ]
+            {
+              "sobjectType": "Contact",
+              "fieldlist": ["FirstName", "LastName", "Title", "MobilePhone", "Email", "Department", "HomePhone", "AccountId"],
+              "soupName": "contacts"
+            },
+            {
+              "sobjectType": "Account",
+              "fieldlist": ["Name", "Phone", "Website", "Industry"],
+              "soupName": "accounts"
+            },
+            {
+              "sobjectType": "Opportunity",
+              "fieldlist": ["Name", "Description", "CloseDate", "Amount", "AccountId"],
+              "soupName": "opportunities"
+            }
+          ]
       },
       "options": {"mergeMode":"OVERWRITE"}
     },
