@@ -43,9 +43,15 @@ let openDetailPath = "openDetail"
 let openDetailRecordIdKey = "recordId"
 
 class ContactListViewModel: ObservableObject {
-    @Published var alertContent: AlertContent?
+//    @Published var alertContent: AlertContent?
     @ObservedObject var sObjectDataManager: SObjectDataManager
-    @Published var selectedRecord: String?
+    @Published var selectedRecord: ContactSObjectData.ID?
+    @Published var newContact = false
+//        didSet {
+//            contacts.append(ContactSummary(id: contact.id.stringValue, firstName: contact.firstName, lastName: contact.lastName))
+//        }
+    
+    
     @Published var showContactDetail: Bool = false
     var anyCancellable: AnyCancellable?
     private var contacts: Queue<ContactSummary>
@@ -55,13 +61,22 @@ class ContactListViewModel: ObservableObject {
         if presentNewContact || selectedRecord != nil {
             self.showContactDetail = true
         }
-        self.selectedRecord = selectedRecord
+        if selectedRecord == nil {
+            self.selectedRecord = sObjectDataManager.contacts.first?.id
+        }
         contacts = Queue(contentsOf: RecentContacts.persistedContacts(), maxSize: 3)
         anyCancellable = sObjectDataManager.objectWillChange.sink { [weak self] in
             self?.objectWillChange.send()
         }
         NotificationCenter.default.addObserver(self, selector: #selector(persistContacts), name: UIScene.willDeactivateNotification, object: nil)
-        self.syncUpDown()
+        if sObjectDataManager.contacts.isEmpty { // TODO
+            self.syncUpDown { success in
+                if success {
+                    self.selectedRecord = sObjectDataManager.contacts.first?.id
+                }
+            }
+           
+        }
     }
     
     deinit {
@@ -69,34 +84,32 @@ class ContactListViewModel: ObservableObject {
     }
     
     func newContactToggled() {
-        showContactDetail = true
-        selectedRecord = nil
+       // self.modalPresented = ModalAction.switchUser
+//        showContactDetail = true
+//        selectedRecord = nil
+        newContact = true
     }
     
-    func contactSelected(_ contact: ContactSObjectData) {
-        showContactDetail = true
-        selectedRecord = contact.id.stringValue
+    func contactSelected(_ contact: ContactSObjectData) { // TODO
+        selectedRecord = contact.id
         contacts.append(ContactSummary(id: contact.id.stringValue, firstName: contact.firstName, lastName: contact.lastName))
     }
-    
-    func dismissDetail() {
-        showContactDetail = false
-        selectedRecord = nil
-    }
 
-    func syncUpDown() {
+    func syncUpDown(completion: ((Bool) -> ())? = nil) {
         if let syncUp = sObjectDataManager.getSync(sObjectDataManager.kSyncUpName), let syncDown = sObjectDataManager.getSync(sObjectDataManager.kSyncDownName), syncUp.isRunning() || syncDown.isRunning() {
             return
         }
-        createAlert(title: "Syncing with Salesforce", message: nil, stopButton: false)
+//        createAlert(title: "Syncing with Salesforce", message: nil, stopButton: false) // TODO
         sObjectDataManager.syncUpDown(completion: { [weak self] success in
             if success {
-                self?.updateAlert(info: "Sync Complete!", okayButton: false)
+//                self?.updateAlert(info: "Sync Complete", okayButton: false)
+                self?.selectedRecord = self?.sObjectDataManager.contacts.first?.id
             } else {
-                self?.updateAlert(info: "Sync Failed!", okayButton: false)
+//                self?.updateAlert(info: "Sync Failed", okayButton: false)
             }
+            completion?(success)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self?.alertContent = nil
+               // self?.alertContent = nil // TODO
             }
         })
     }
@@ -115,115 +128,19 @@ class ContactListViewModel: ObservableObject {
         }
         return false
     }
-
-    // MARK: User Actions
-    func alertOkTapped() {
-        withAnimation {
-            alertContent = nil
-        }
-    }
-
-    func alertStopTapped() {
-        stopSyncManager()
-        updateAlert(info: "\nRequesting sync manager stop")
-    }
-
-    func showInfo() {
-        let syncManagerState = sObjectDataManager.isSyncManagerStopping() ? "stopping" : (sObjectDataManager.isSyncManagerStopped() ? "stopped" : "accepting_syncs")
-        let info = ""
-           + "syncManager:\(syncManagerState)\n"
-            + "numberOfContacts=\(sObjectDataManager.countContacts())\n"
-            + "syncDownContacts=\(infoForSyncState(sObjectDataManager.getSync("syncDownContacts")))\n"
-            + "syncUpContacts=\(infoForSyncState(sObjectDataManager.getSync("syncUpContacts")))"
-       
-        createAlert(title: "Sync Info", message: info, stopButton: false, okayButton: true)
-    }
-
-    func cleanGhosts() {
-        createAlert(title: "Cleaning Sync Ghosts", message: nil, stopButton: true)
-        sObjectDataManager.cleanGhosts(onError: { [weak self] mobileSyncError in
-            self?.updateAlert(info: "Failed with error \(mobileSyncError)")
-        }, onValue: { [weak self] numRecords in
-            self?.updateAlert(info: "Clean ghosts: \(numRecords) records")
-        })
-    }
-
-    func clearLocalData() {
-        sObjectDataManager.clearLocalData()
-    }
-
-    func refreshLocalData() {
-        sObjectDataManager.loadLocalData()
-    }
-
-    func syncDown() {
-        sync(syncName: sObjectDataManager.kSyncDownName)
-    }
-
-    func syncUp() {
-        sync(syncName: sObjectDataManager.kSyncUpName)
-    }
-
-    func resumeSyncManager() {
-        createAlert(title: "Resuming Sync Manager", message: nil, stopButton: true)
-        do {
-            try sObjectDataManager.resumeSyncManager { [weak self] syncState in
-                let isLast = syncState.status != .running
-                self?.updateAlert(info: self?.infoForSyncState(syncState), okayButton: isLast)
-            }
-        } catch {
-            self.updateAlert(info: "Failed with error \(error)")
-        }
-    }
-
-    func stopSyncManager() {
-        sObjectDataManager.stopSyncManager()
-    }
-
-    func stopAction() {
-        sObjectDataManager.stopSyncManager()
-        updateAlert(info: "\nRequesting sync manager stop")
-    }
     
     func itemProvider(contact: ContactSObjectData) -> NSItemProvider {
         let userActivity = NSUserActivity(activityType: openDetailActivityType)
         userActivity.title = openDetailPath
         let contactId = contact.id.stringValue
         userActivity.userInfo = [openDetailRecordIdKey: contactId]
+        userActivity.targetContentIdentifier = openDetailPath
         let itemProvider = NSItemProvider(object: contactId as NSString)
         itemProvider.registerObject(userActivity, visibility: .all)
         return itemProvider
     }
 
     // MARK: Private
-    private func sync(syncName: String) {
-        createAlert(title: "Running \(syncName)", message: nil, stopButton: true)
-        sObjectDataManager.sync(syncName: syncName, onError: { [weak self] mobileSyncError in
-            self?.updateAlert(info: "Failed with error: \(mobileSyncError)")
-        }, onValue: { [weak self] syncState in
-        let info = self?.infoForSyncState(syncState)
-            let isLast = syncState.status != .running
-            self?.updateAlert(info: info, okayButton: isLast)
-       })
-    }
-
-    private func createAlert(title: String, message: String?, stopButton: Bool, okayButton: Bool = false) {
-        alertContent = AlertContent(title: title, message: message, stopButton: stopButton, okayButton: okayButton)
-    }
-
-    private func updateAlert(info: String?, okayButton: Bool = true) {
-        if alertContent != nil {
-            alertContent!.message = info
-            alertContent!.okayButton = okayButton
-        }
-    }
-
-    private func infoForSyncState(_ syncState: SyncState?) -> String {
-        guard let syncState = syncState else {
-            return "No sync provided"
-        }
-        return "\(syncState.progress)% \(SyncState.syncStatus(toString:syncState.status)) totalSize: \(syncState.totalSize) maxTs: \(syncState.maxTimeStamp)"
-    }
     
     @objc private func persistContacts() {
         RecentContacts.persistContacts(contacts.array)

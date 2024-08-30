@@ -27,16 +27,24 @@ import UIKit
 import MobileSync
 import SwiftUI
 
-@UIApplicationMain
+//@UIApplicationMain
 class AppDelegate : UIResponder, UIApplicationDelegate {
     
     override init() {
         super.init()
         MobileSyncSDKManager.initializeSDK()
+        MobileSyncSDKManager.shared.usesSnapshotView = false
     }
+    
+//    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+//        let sceneConfig: UISceneConfiguration = UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)
+//        sceneConfig.delegateClass = SceneDelegate.self
+//        return sceneConfig
+//    }
     
     // MARK: - App delegate lifecycle
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+//        AuthHelper.loginIfRequired()
         // If you wish to register for push notifications, uncomment the line below.  Note that,
         // if you want to receive push notifications from Salesforce, you will also need to
         // implement the application(application, didRegisterForRemoteNotificationsWithDeviceToken) method (below).
@@ -46,9 +54,8 @@ class AppDelegate : UIResponder, UIApplicationDelegate {
         //font and fontsize of the navigation bar
         //self.customizeLoginView()
         
-        DataSharingHelper.shared.appGroupName = "group.com.salesforce.mobilesyncexplorer"
-        DataSharingHelper.shared.isAppGroupEnabled = true
-
+        //DataSharingHelper.shared.appGroupName = "group.com.salesforce.mobilesyncexplorer"
+        DataSharingHelper.shared.isAppGroupEnabled = false
         return true
     }
     

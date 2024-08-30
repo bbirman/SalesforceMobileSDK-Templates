@@ -1,0 +1,12 @@
+{
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "levels" : [
+    {
+      "filename" : "mascots.png",
+      "mipmap-level" : "base"
+    }
+  ]
+}

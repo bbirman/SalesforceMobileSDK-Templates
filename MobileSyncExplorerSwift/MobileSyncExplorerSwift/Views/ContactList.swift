@@ -29,54 +29,58 @@ import SwiftUI
 import MobileSync
 
 struct ContactListView: View {
-    @ObservedObject private var viewModel: ContactListViewModel
+    @ObservedObject var viewModel: ContactListViewModel
     private var notificationModel = NotificationListModel()
+    private let sObjectManager: SObjectDataManager
+    @State private var columnVisibility =
+    NavigationSplitViewVisibility.doubleColumn
+    
     @State private var searchTerm: String = ""
     
-    init(sObjectDataManager: SObjectDataManager, selectedRecord: String? = nil, newContact: Bool = false, searchFocused: Bool = false) {
-        self.viewModel = ContactListViewModel(sObjectDataManager: sObjectDataManager, presentNewContact: newContact, selectedRecord: selectedRecord)
+    init(sObjectManager: SObjectDataManager, selectedRecord: String? = nil, newContact: Bool = false, searchFocused: Bool = false) {
+        self.sObjectManager = sObjectManager
+        self.viewModel = ContactListViewModel(sObjectDataManager: sObjectManager, presentNewContact: newContact, selectedRecord: selectedRecord)
     }
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                VStack {
-                    SearchBar(text: self.$searchTerm)
-
-                    List {
-                        ForEach(viewModel.sObjectDataManager.contacts.filter { contact in
-                            self.searchTerm.isEmpty ? true : self.viewModel.contactMatchesSearchTerm(contact: contact, searchTerm: self.searchTerm)
-                        }) { contact in
-                            Button {
-                                viewModel.contactSelected(contact)
-                            } label: {
-                                ContactCell(contact: contact)
-                                    .onDrag { return viewModel.itemProvider(contact: contact) }
-                            }
-                            .listRowBackground(SObjectDataManager.dataLocallyDeleted(contact) ? Color.contactCellDeletedBackground : .clear)
-                        }
-                    }
-                    .id(UUID())
+        NavigationSplitView(columnVisibility: $columnVisibility) {
+            ScrollViewReader { proxy in
+                List(viewModel.sObjectDataManager.contacts.filter { contact in
+                    self.searchTerm.isEmpty ? true : self.viewModel.contactMatchesSearchTerm(contact: contact, searchTerm: self.searchTerm)
+                },
+                     selection: $viewModel.selectedRecord) { contact in
+                    ContactCell(contact: contact)
+                        .onDrag { return viewModel.itemProvider(contact: contact) }
                 }
-                    
-                NavigationLink(destination: ContactDetailView(localId: viewModel.selectedRecord, sObjectDataManager: self.viewModel.sObjectDataManager, dismiss: { self.viewModel.dismissDetail()}), isActive: $viewModel.showContactDetail) { EmptyView() }
-                
-                if viewModel.alertContent != nil {
-                    StatusAlert(viewModel: viewModel)
-                }
+                 .listStyle(.plain)
+                 .searchable(text: $searchTerm)
+                 .navigationBarTitle("Contacts")
+                 .navigationBarItems(trailing: NavBarButtons(viewModel: viewModel, notificationModel: notificationModel))
             }
-            .navigationBarTitle("MobileSync Explorer")
-            .navigationBarItems(trailing: NavBarButtons(viewModel: viewModel, notificationModel: notificationModel))
+            
+        } detail: {
+            ContactDetailView(localId: viewModel.selectedRecord, sObjectDataManager: self.viewModel.sObjectDataManager)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .navigationSplitViewStyle(BalancedNavigationSplitViewStyle())
         .onAppear {
             self.notificationModel.fetchNotifications()
-        }
+        }.sheet(isPresented: $viewModel.newContact, content: {
+            NavigationStack {
+                ContactDetailView(localId: nil, sObjectDataManager: sObjectManager) { newContactId in
+                    viewModel.selectedRecord = newContactId
+                }
+            }
+        })
+        
+        // TODO
+       // if viewModel.alertContent != nil {
+       //                    StatusAlert(viewModel: viewModel)
+       //                }
     }
 }
 
 struct StatusAlert: View {
-    @ObservedObject var viewModel: ContactListViewModel
+    @ObservedObject var viewModel: SettingsViewModel
 
     func twoButtonDisplay() -> Bool {
         if let alertContent = viewModel.alertContent {
@@ -147,6 +151,7 @@ struct StatusAlert: View {
 enum ModalAction: Identifiable {
     case switchUser
     case inspectDB
+    case newContact
 
     var id: Int {
         return self.hashValue
@@ -156,9 +161,6 @@ enum ModalAction: Identifiable {
 struct NavBarButtons: View {
     @ObservedObject var viewModel: ContactListViewModel
     @ObservedObject var notificationModel: NotificationListModel
-    @State private var modalPresented: ModalAction?
-    @State private var actionSheetPresented = false
-    @State private var logoutAlertPresented = false
 
     var body: some View {
         HStack {
@@ -168,61 +170,7 @@ struct NavBarButtons: View {
             Button(action: {
                 self.viewModel.syncUpDown()
             }, label: { Image("sync").renderingMode(.template) })
-            Button(action: {
-                self.actionSheetPresented = true
-            }, label: { Image("setting").renderingMode(.template) })
-                .actionSheet(isPresented: $actionSheetPresented) {
-                 ActionSheet(title: Text("Additional Actions"), buttons: [
-                    .default(Text("Show Info"), action: {
-                        self.viewModel.showInfo()
-                    }),
-                    .default(Text("Clear Local Data"), action: {
-                        self.viewModel.clearLocalData()
-                    }),
-                    .default(Text("Refresh Local Data"), action: {
-                        self.viewModel.refreshLocalData()
-                    }),
-                    .default(Text("Sync Down"), action: {
-                        self.viewModel.syncDown()
-                    }),
-                    .default(Text("Sync Up"), action: {
-                        self.viewModel.syncUp()
-                    }),
-                    .default(Text("Clean Sync Ghosts"), action: {
-                        self.viewModel.cleanGhosts()
-                    }),
-                    .default(Text("Stop Sync Manager"), action: {
-                        self.viewModel.stopSyncManager()
-                    }),
-                    .default(Text("Resume Sync Manager"), action: {
-                        self.viewModel.resumeSyncManager()
-                    }),
-                    .default(Text("Logout"), action: {
-                        self.logoutAlertPresented = true
-                    }),
-                    .default(Text("Switch User"), action: {
-                        self.modalPresented = ModalAction.switchUser
-                    }),
-                    .default(Text("Inspect DB"), action: {
-                        self.modalPresented = ModalAction.inspectDB
-                    }),
-                    .default(Text("Cancel")
-                )])
-            }.sheet(item: $modalPresented) { creationType in
-                if let store = self.viewModel.sObjectDataManager.store, creationType == ModalAction.inspectDB {
-                    InspectorViewControllerWrapper(store: store)
-                } else if creationType == ModalAction.switchUser {
-                    SalesforceUserManagementViewControllerWrapper()
-                }
-            }
-            NotificationBell(notificationModel: notificationModel, sObjectDataManager: self.viewModel.sObjectDataManager)
-        }.alert(isPresented: $logoutAlertPresented, content: {
-            Alert(title: Text("Are you sure you want to log out?"),
-                  primaryButton: .destructive(Text("Logout"), action: {
-                      UserAccountManager.shared.logout()
-                  }),
-                  secondaryButton: .cancel())
-        })
+        }
     }
 }
 
@@ -253,10 +201,24 @@ struct ContactCell: View {
 
     var body: some View {
         HStack {
-            Image(uiImage: ContactHelper.initialsImage(ContactHelper.colorFromContact(lastName: contact.lastName), initials: ContactHelper.initialsStringFromContact(firstName: contact.firstName, lastName: contact.lastName))!)
+            Circle()
+                .fill(Color(ContactHelper.colorFromContact(lastName: contact.lastName)))
+                .frame(width: 45, height: 45)
+                .overlay(
+                    Text(ContactHelper.initialsStringFromContact(firstName: contact.firstName, lastName: contact.lastName))
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                       // .kerning(0.3)
+                )
+           
+            
             VStack(alignment: .leading) {
-                Text(ContactHelper.nameStringFromContact(firstName: contact.firstName, lastName: contact.lastName)).font(.appRegularFont(16)).foregroundColor(Color(UIColor.label))
-                Text(ContactHelper.titleStringFromContact(title: contact.title)).font(.appRegularFont(12)).foregroundColor(.secondaryLabelText)
+                Text(ContactHelper.nameStringFromContact(firstName: contact.firstName, lastName: contact.lastName))
+                    .font(.headline)
+                    .foregroundColor(Color(UIColor.label))
+                Text(ContactHelper.titleStringFromContact(title: contact.title))
+                    .font(.subheadline)
+                    .foregroundColor(.secondaryLabelText)
             }
             Spacer()
             if SObjectDataManager.dataLocallyUpdated(contact) {
@@ -265,39 +227,11 @@ struct ContactCell: View {
             if SObjectDataManager.dataLocallyCreated(contact) {
                 Image(systemName: "plus").foregroundColor(.appBlue)
             }
+            if SObjectDataManager.dataLocallyDeleted(contact) {
+                Image(systemName: "trash").foregroundColor(.red)
+            }
         }
         .padding([.all], 10)
-    }
-}
-
-struct SearchBar: UIViewRepresentable {
-    @Binding var text: String
-
-    class Coordinator: NSObject, UISearchBarDelegate {
-        @Binding var text: String
-
-        init(text: Binding<String>) {
-            _text = text
-        }
-
-        func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-            text = searchText
-        }
-    }
-
-    func makeCoordinator() -> Coordinator {
-        return Coordinator(text: $text)
-    }
-
-    func makeUIView(context: UIViewRepresentableContext<SearchBar>) -> UISearchBar {
-        let searchBar = UISearchBar()
-        searchBar.placeholder = "Search"
-        searchBar.delegate = context.coordinator
-        return searchBar
-    }
-
-    func updateUIView(_ uiView: UISearchBar, context: UIViewRepresentableContext<SearchBar>) {
-        uiView.text = text
     }
 }
 
@@ -332,5 +266,5 @@ struct SalesforceUserManagementViewControllerWrapper: UIViewControllerRepresenta
     let userAccount = UserAccount(credentials: credentials)
     let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
     
-    return ContactListView(sObjectDataManager: sObjectManager)
+    return ContactListView(sObjectManager: sObjectManager)
 }

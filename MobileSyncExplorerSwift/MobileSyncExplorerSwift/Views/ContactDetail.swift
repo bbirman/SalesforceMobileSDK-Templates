@@ -26,6 +26,7 @@
 //  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import SwiftUI
+import SalesforceSDKCore
 
 struct ReadView: View {
     var contact: ContactSObjectData
@@ -48,9 +49,11 @@ struct ReadViewField: View {
     var fieldValue: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(fieldName).font(.subheadline).foregroundColor(.secondaryLabelText)
-            Text(fieldValue ?? "")
+        if let value = fieldValue {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(fieldName).font(.subheadline).foregroundColor(.secondaryLabelText)
+                Text(value)
+            }
         }
     }
 }
@@ -78,98 +81,149 @@ struct EditView: View {
     }
 }
 
+struct ContactButton: View {
+    let value: String?
+    let urlScheme: String
+    let imageName: String
+    
+    var fullURL: URL? {
+        if let value = value,
+           let url = URL(string: "\(urlScheme):\(value)") {
+            return url
+        }
+        return nil
+    }
+    
+    var isDisabled: Bool {
+        if let fullURL = fullURL, UIApplication.shared.canOpenURL(fullURL) {
+            return false
+        }
+        return true
+    }
+    
+    var body: some View {
+        Button(action: {
+            if let fullURL {
+                UIApplication.shared.open(fullURL)
+            }
+        }, label: {
+            Image(systemName: imageName)
+                .font(.largeTitle)
+                .padding()
+        })
+        .disabled(isDisabled)
+    }
+}
+
+struct LeadingNavBarButtons: View {
+    @Environment(\.presentationMode) var presentationMode
+    @ObservedObject var viewModel: ContactDetailViewModel
+    
+    var body: some View {
+        if viewModel.isEditing {
+            Button(role: .cancel, action: {
+                withAnimation {
+                    if viewModel.isNewContact {
+                        self.presentationMode.wrappedValue.dismiss()
+                    } else {
+                        viewModel.isEditing.toggle()
+                    }
+                }
+            }, label: {
+                Text("Cancel")
+            })
+        } else {
+            EmptyView()
+        }
+    }
+    
+}
+
 struct ContactDetailView: View {
     @Environment(\.presentationMode) var presentationMode
     @ObservedObject private var viewModel: ContactDetailViewModel
-    @State private var isEditing: Bool = false
     private var onAppearAction: () -> Void = {}
-    private var dismissAction: () -> Void = {}
-
+    private var onSaveAction: ((ContactSObjectData.ID?) -> Void)?
+    
     init(id: String, sObjectDataManager: SObjectDataManager, onAppear: @escaping () -> Void) {
         self.viewModel = ContactDetailViewModel(id: id, sObjectDataManager: sObjectDataManager)
         self.onAppearAction = onAppear
     }
+    
+    init(sObjectDataManager: SObjectDataManager) {
+        self.viewModel = ContactDetailViewModel(sObjectDataManager: sObjectDataManager)
+    }
 
-    init(localId: String?, sObjectDataManager: SObjectDataManager, dismiss: @escaping () -> Void) {
+    init(localId: ContactSObjectData.ID?, sObjectDataManager: SObjectDataManager, onSave: ((ContactSObjectData.ID?) -> Void)? = nil) {
         self.viewModel = ContactDetailViewModel(localId: localId, sObjectDataManager: sObjectDataManager)
-        self.dismissAction = dismiss
-        if viewModel.isNewContact {
-            self._isEditing = State(initialValue: true)
-        }
+        self.onSaveAction = onSave
     }
 
     var body: some View {
         VStack {
-            if isEditing {
+            if viewModel.isEditing {
                 EditView(contact: $viewModel.contact)
             } else {
-                ReadView(contact: viewModel.contact)
-            }
-            Spacer()
-            DeleteButton(label: viewModel.deleteButtonTitle(), isDisabled: viewModel.isNewContact) {
-                self.viewModel.deleteButtonTapped()
-                self.dismissAction()
+                VStack {
+                    ReadView(contact: viewModel.contact)
+                    Spacer()
+                    HStack(alignment: .center) {
+                        ContactButton(value: viewModel.contact.mobilePhone, urlScheme: "facetime", imageName: "video.fill")
+                        ContactButton(value: viewModel.contact.email, urlScheme: "mailto", imageName: "envelope.fill")
+                        ContactButton(value: viewModel.contact.mobilePhone, urlScheme: "sms", imageName: "message.fill")
+                    }
+                    .padding()
+                    .padding(.bottom)
+                }.background(Color(UIColor.secondarySystemBackground))
             }
         }.onAppear {
             self.onAppearAction()
+        }.onContinueUserActivity(openDetailActivityType) { activity in
+            if let contactId = activity.userInfo?[openDetailRecordIdKey] as? String {
+                self.viewModel.loadContact(id: NSNumber(value: Int(contactId)!) )
+            }
         }
-        .navigationBarTitle(Text(viewModel.title), displayMode: .inline)
-        .navigationBarBackButtonHidden(true)
-        .navigationBarItems(leading:
-            Button(action: {
-                if self.isEditing {
-                    withAnimation {
-                       self.isEditing.toggle()
+        .navigationBarTitle(Text(viewModel.title)) // , displayMode: .inline
+        .navigationBarBackButtonHidden(viewModel.isEditing)
+        .navigationBarItems(
+            leading: LeadingNavBarButtons(viewModel: viewModel),
+            trailing:
+                HStack {
+                    if !viewModel.isEditing {
+                        Button(action: {
+                            self.viewModel.deleteButtonTapped()
+                        }, label: {
+                            Text("\(viewModel.deleteButtonTitle())")
+                                .foregroundStyle(.red)
+                        })
                     }
-                } else {
-                    self.presentationMode.wrappedValue.dismiss()
-                    self.dismissAction()
+                    
+                    Button(action: {
+                        if viewModel.isEditing {
+                            let id = viewModel.saveButtonTapped()
+                            onSaveAction?(id)
+                        }
+                        withAnimation {
+                            viewModel.isEditing.toggle()
+                            if viewModel.isNewContact {
+                                self.presentationMode.wrappedValue.dismiss()
+                            }
+                            
+                        }
+                    }, label: {
+                        viewModel.isEditing ? Text("Save") : Text("Edit")
+                    })
                 }
-            }, label: {
-                if self.isEditing {
-                    Text("Cancel")
-                } else {
-                    HStack {
-                        Image("backArrow")
-                            .renderingMode(.template)
-                        Text("Back")
-                    }
-                }
-            }), trailing:
-            Button(action: {
-                if self.isEditing {
-                    self.viewModel.saveButtonTapped()
-                    self.dismissAction()
-                }
-                withAnimation {
-                   self.isEditing.toggle()
-                }
-            }, label: {
-                self.isEditing ? Text("Save") : Text("Edit")
-            })
         )
     }
 }
 
-struct DeleteButton: View {
-    let label: String
-    let isDisabled: Bool
-    let action: () -> ()
+#Preview {
+    let credentials = OAuthCredentials(identifier: "test", clientId: "", encrypted: false)!
+    let userAccount = UserAccount(credentials: credentials)
+    let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
     
-    func buttonBackground() -> Color {
-        isDisabled ? Color.disabledDestructiveButton : Color.destructiveButton
-    }
-
-    var body: some View {
-        Button(action: {
-            self.action()
-        }, label: {
-            Text(label)
-            .frame(width: 350, height: 50, alignment: .center)
-            .background(buttonBackground())
-            .foregroundColor(.white)
-            .overlay(RoundedRectangle(cornerRadius: 5).stroke(buttonBackground(), lineWidth: 1))
-            .padding([.bottom], 10)
-        }).disabled(isDisabled)
+    return ContactDetailView(id: "", sObjectDataManager: sObjectManager) {
+        
     }
 }

@@ -259,7 +259,41 @@ class SObjectDataManager: ObservableObject {
                                                       ContactConstants.kContactEmailField : "email",
                                                       ContactConstants.kContactDepartmentField : "department",
                                                       ContactConstants.kContactHomePhoneField : "phone",
-                                                      "_soupEntryId" : 2])]
+                                                      "_soupEntryId" : 2]),
+                        ContactSObjectData(soupDict: [ContactConstants.kContactFirstNameField : "John",
+                                                      ContactConstants.kContactLastNameField : "Doe",
+                                                      ContactConstants.kContactTitleField  : "title",
+                                                      ContactConstants.kContactMobilePhoneField : "phone",
+                                                      ContactConstants.kContactEmailField : "email",
+                                                      ContactConstants.kContactDepartmentField : "department",
+                                                      ContactConstants.kContactHomePhoneField : "phone",
+                                                      "_soupEntryId" : 3]),
+                        ContactSObjectData(soupDict: [ContactConstants.kContactFirstNameField : "John",
+                                                      ContactConstants.kContactLastNameField : "Doe",
+                                                      ContactConstants.kContactTitleField  : "title",
+                                                      ContactConstants.kContactMobilePhoneField : "phone",
+                                                      ContactConstants.kContactEmailField : "email",
+                                                      ContactConstants.kContactDepartmentField : "department",
+                                                      ContactConstants.kContactHomePhoneField : "phone",
+                                                      "_soupEntryId" : 4]),
+                        ContactSObjectData(soupDict: [ContactConstants.kContactFirstNameField : "John",
+                                                      ContactConstants.kContactLastNameField : "Doe",
+                                                      ContactConstants.kContactTitleField  : "title",
+                                                      ContactConstants.kContactMobilePhoneField : "phone",
+                                                      ContactConstants.kContactEmailField : "email",
+                                                      ContactConstants.kContactDepartmentField : "department",
+                                                      ContactConstants.kContactHomePhoneField : "phone",
+                                                      "_soupEntryId" : 5]),
+                        ContactSObjectData(soupDict: [ContactConstants.kContactFirstNameField : "John",
+                                                      ContactConstants.kContactLastNameField : "Doe",
+                                                      ContactConstants.kContactTitleField  : "title",
+                                                      ContactConstants.kContactMobilePhoneField : "phone",
+                                                      ContactConstants.kContactEmailField : "email",
+                                                      ContactConstants.kContactDepartmentField : "department",
+                                                      ContactConstants.kContactHomePhoneField : "phone",
+                                                      "_soupEntryId" : 6])
+                
+            ]
             
         }
     }
@@ -342,16 +376,17 @@ class SObjectDataManager: ObservableObject {
             .store(in: &cancellableSet)
     }
 
-    func createLocalData(_ newData: SObjectData?) {
+    func createLocalData(_ newData: SObjectData?) -> [[AnyHashable: Any]]?  {
         guard let newData = newData, let store = store else {
-            return
+            return nil
         }
         newData.updateSoup(forFieldName: kSyncTargetLocal, fieldValue: true)
         newData.updateSoup(forFieldName: kSyncTargetLocallyCreated, fieldValue: true)
         let sobjectSpec = type(of: newData).dataSpec()
-
-        store.upsert(entries: [newData.soupDict], forSoupNamed: (sobjectSpec?.soupName)!)
+        let result = store.upsert(entries: [newData.soupDict], forSoupNamed: (sobjectSpec?.soupName)!)
+        
         loadLocalData()
+        return result
     }
 
     func updateLocalData(_ updatedData: SObjectData?) {
