@@ -319,7 +319,7 @@ struct SearchBar: UIViewRepresentable {
     }
 }
 
-@main
+//@main
 struct ContactsApp: App {
     
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
@@ -417,24 +417,23 @@ struct ContactsApp: App {
 //        }
            
         
-        .defaultSize(width: 1600, height: 800)
+//        .defaultSize(width: 1600, height: 800)
 //#if os(visionOS)
         .windowStyle(.plain)
            // .windowResizability(.contentSize)
 //        #endif
            // .defaultSize(width: <#T##CGFloat#>, height: <#T##CGFloat#>, depth: <#T##CGFloat#>)
-        WindowGroup(id: "detail") {
-            if let userAccount = UserAccountManager.shared.currentUserAccount {
-                let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
-                NavigationStack {
-                    //ContactDetailView(localId: <#T##ContactSObjectData.ID?#>, sObjectDataManager: <#T##SObjectDataManager#>)
-                    ContactDetailView(sObjectDataManager: sObjectManager)
-                }
-                    
-            }
-            
-        }
-        .handlesExternalEvents(matching: [openDetailActivityType, openDetailPath])
+//        WindowGroup(id: "detail") {
+//            if let userAccount = UserAccountManager.shared.currentUserAccount {
+//                let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
+//                
+//                //ContactDetailView(localId: <#T##ContactSObjectData.ID?#>, sObjectDataManager: <#T##SObjectDataManager#>)
+//                ContactDetailView(sObjectDataManager: sObjectManager)
+//                    
+//            }
+//            
+//        }
+//        .handlesExternalEvents(matching: [openDetailActivityType, openDetailPath])
         
 //        WindowGroup(id: "3D") {
 //           
@@ -458,13 +457,13 @@ struct ContactsApp: App {
 //#if os(visionOS)
            
         // Display a fully immersive space.
-        ImmersiveSpace(id: "immersive") {
+//        ImmersiveSpace(id: "immersive") {
 //            RealityView { content in
 //                content.add(createImmersivePicture(imageName : "mascots"))
 //                
 //            }
           
-        }.immersionStyle(selection: $currentStyle, in: .mixed)
+//        }.immersionStyle(selection: $currentStyle, in: .mixed)
 //        #endif
     
     }

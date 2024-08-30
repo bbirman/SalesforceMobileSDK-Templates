@@ -198,6 +198,7 @@ struct Settings: View {
                       }),
                       secondaryButton: .cancel())
             })
+            .navigationTitle("Settings")
         }
     }
 }

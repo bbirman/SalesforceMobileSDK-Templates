@@ -120,7 +120,7 @@ struct LeadingNavBarButtons: View {
     @ObservedObject var viewModel: ContactDetailViewModel
     
     var body: some View {
-        if viewModel.isEditing {
+        if viewModel.isEditing && viewModel.isNewContact {
             Button(role: .cancel, action: {
                 withAnimation {
                     if viewModel.isNewContact {
@@ -195,6 +195,18 @@ struct ContactDetailView: View {
                         }, label: {
                             Text("\(viewModel.deleteButtonTitle())")
                                 .foregroundStyle(.red)
+                        })
+                    } else if !viewModel.isNewContact {
+                        Button(role: .cancel, action: {
+                            withAnimation {
+                                if viewModel.isNewContact {
+                                    self.presentationMode.wrappedValue.dismiss()
+                                } else {
+                                    viewModel.isEditing.toggle()
+                                }
+                            }
+                        }, label: {
+                            Text("Cancel")
                         })
                     }
                     
