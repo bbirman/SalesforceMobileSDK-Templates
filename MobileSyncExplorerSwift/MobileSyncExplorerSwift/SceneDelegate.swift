@@ -59,12 +59,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             return
         }
         // TODO
-//        let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
+        let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
 //        if url.absoluteString.contains("contact/new") {
 //            self.window?.rootViewController = UIHostingController(rootView: ContactListView(sObjectDataManager: sObjectManager, newContact: true))
-//        } else if let contactRange = url.absoluteString.range(of: "contact/") {
-//            let id = String(url.absoluteString[contactRange.upperBound...])
-//            self.window?.rootViewController = UIHostingController(rootView: ContactListView(sObjectDataManager: sObjectManager, selectedRecord: id))
+//        } else 
+        if let contactRange = url.absoluteString.range(of: "contact/") {
+            let id = String(url.absoluteString[contactRange.upperBound...])
+            self.window?.rootViewController = UIHostingController(rootView: NavigationStack {
+                ContactDetailView(localId: NSNumber(value: Int(id)!), sObjectDataManager: sObjectManager)
+            })
+        }
 //        }
     }
     
@@ -91,13 +95,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         // TODO
         self.window?.rootViewController = UIHostingController(rootView: Tabs(sObjectDataManager: sObjectManager))
-//        if let userActivity = userActivity, userActivity.title == openDetailPath,
-//           let selectionId = userActivity.userInfo?[openDetailRecordIdKey] as? String {
-//            let list = ContactListView(sObjectDataManager: sObjectManager, selectedRecord: selectionId)
-//            self.window?.rootViewController = UIHostingController(rootView: list)
-//        } else {
-//            self.window?.rootViewController = UIHostingController(rootView: ContactListView(sObjectDataManager: sObjectManager))
-//        }
+        if let userActivity = userActivity, userActivity.title == openDetailPath,
+           let selectionId = userActivity.userInfo?[openDetailRecordIdKey] as? String {
+            let localId =  NSNumber(value: Int(selectionId)!)
+            self.window?.rootViewController = UIHostingController(rootView:  NavigationStack {
+                ContactDetailView(localId: localId, sObjectDataManager: sObjectManager)
+            })
+        } else {
+            self.window?.rootViewController = UIHostingController(rootView: Tabs(sObjectDataManager: sObjectManager))
+        }
     }
 
     func resetViewState(_ postResetBlock: @escaping () -> ()) {

@@ -178,11 +178,13 @@ struct ContactDetailView: View {
             }
         }.onAppear {
             self.onAppearAction()
-        }.onContinueUserActivity(openDetailActivityType) { activity in
-            if let contactId = activity.userInfo?[openDetailRecordIdKey] as? String {
-                self.viewModel.loadContact(id: NSNumber(value: Int(contactId)!) )
-            }
         }
+        // TODO: With App lifecycle only
+//        .onContinueUserActivity(openDetailActivityType) { activity in
+//            if let contactId = activity.userInfo?[openDetailRecordIdKey] as? String {
+//                self.viewModel.loadContact(id: NSNumber(value: Int(contactId)!) )
+//            }
+//        }
         .navigationBarTitle(Text(viewModel.title)) // , displayMode: .inline
         .navigationBarBackButtonHidden(viewModel.isEditing)
         .navigationBarItems(
@@ -202,6 +204,7 @@ struct ContactDetailView: View {
                                 if viewModel.isNewContact {
                                     self.presentationMode.wrappedValue.dismiss()
                                 } else {
+                                    viewModel.loadContact(id: viewModel.contact.id)
                                     viewModel.isEditing.toggle()
                                 }
                             }
