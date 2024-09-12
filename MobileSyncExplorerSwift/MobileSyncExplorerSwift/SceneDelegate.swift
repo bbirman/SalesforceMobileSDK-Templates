@@ -33,21 +33,38 @@ import MobileSync
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     public var window: UIWindow?
     
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = (scene as? UIWindowScene) else { return }
-        self.window = UIWindow(frame: windowScene.coordinateSpace.bounds)
-        self.window?.windowScene = windowScene
-
-        AuthHelper.registerBlock(forCurrentUserChangeNotifications: scene) {
-            self.resetViewState {
-                self.setupRootViewController(userActivity: connectionOptions.userActivities.first)
-            }
-        }
-        self.initializeAppViewState()
-        AuthHelper.loginIfRequired(scene) {
-            self.setupRootViewController(userActivity: connectionOptions.userActivities.first)
-        }
-    }
+//    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+//        guard let windowScene = (scene as? UIWindowScene) else { return }
+//        
+//        
+//        let frame = windowScene.coordinateSpace.bounds
+////        if let userActivity = userActivity, userActivity.title == openDetailPath {
+////            self.window = UIWindow(frame: CGRect(origin: frame.origin, size: CGSize(width: frame.width/2, height: frame.height)))
+////        } else {  
+////        }
+//       
+//        AuthHelper.registerBlock(forCurrentUserChangeNotifications: scene) {
+////            self.resetViewState {
+////                self.setupRootViewController(userActivity: connectionOptions.userActivities.first)
+////            }
+//        }
+//        
+//        if connectionOptions.userActivities.first?.activityType != "com.salesforce.mobilesdk.MobileSyncExplorerSwift.openWindowByID" {
+//            self.window = UIWindow(frame: frame)
+//    //
+//            self.window?.windowScene = windowScene
+//
+//            AuthHelper.loginIfRequired(scene) {
+////                self.window = UIWindow(frame: frame)
+//        //
+////                self.window?.windowScene = windowScene
+//                self.setupRootViewController(userActivity: connectionOptions.userActivities.first)
+//            }
+//            self.initializeAppViewState()
+//        }
+//          
+//        
+//    }
     
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         // Uncomment following block to enable IDP Login flow
@@ -66,7 +83,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if let contactRange = url.absoluteString.range(of: "contact/") {
             let id = String(url.absoluteString[contactRange.upperBound...])
             self.window?.rootViewController = UIHostingController(rootView: NavigationStack {
-                ContactDetailView(localId: NSNumber(value: Int(id)!), sObjectDataManager: sObjectManager)
+                ContactDetailView(localId: id, sObjectDataManager: sObjectManager)
             })
         }
 //        }
@@ -95,11 +112,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         // TODO
         self.window?.rootViewController = UIHostingController(rootView: Tabs(sObjectDataManager: sObjectManager))
+
         if let userActivity = userActivity, userActivity.title == openDetailPath,
            let selectionId = userActivity.userInfo?[openDetailRecordIdKey] as? String {
             let localId =  NSNumber(value: Int(selectionId)!)
             self.window?.rootViewController = UIHostingController(rootView:  NavigationStack {
-                ContactDetailView(localId: localId, sObjectDataManager: sObjectManager)
+                ContactDetailView(localId: selectionId, sObjectDataManager: sObjectManager)
             })
         } else {
             self.window?.rootViewController = UIHostingController(rootView: Tabs(sObjectDataManager: sObjectManager))

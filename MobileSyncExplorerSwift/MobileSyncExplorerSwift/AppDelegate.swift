@@ -27,7 +27,7 @@ import UIKit
 import MobileSync
 import SwiftUI
 
-@UIApplicationMain
+//@UIApplicationMain
 class AppDelegate : UIResponder, UIApplicationDelegate {
     
     override init() {

@@ -47,6 +47,7 @@ class ContactListViewModel: ObservableObject {
     @ObservedObject var sObjectDataManager: SObjectDataManager
     @Published var selectedRecord: ContactSObjectData.ID?
     @Published var newContact = false
+    @Published var searchTerm = ""
 //        didSet {
 //            contacts.append(ContactSummary(id: contact.id.stringValue, firstName: contact.firstName, lastName: contact.lastName))
 //        }
@@ -92,7 +93,7 @@ class ContactListViewModel: ObservableObject {
     
     func contactSelected(_ contact: ContactSObjectData) { // TODO
         selectedRecord = contact.id
-        contacts.append(ContactSummary(id: contact.id.stringValue, firstName: contact.firstName, lastName: contact.lastName))
+        contacts.append(ContactSummary(id: contact.id, firstName: contact.firstName, lastName: contact.lastName))
     }
 
     func syncUpDown(completion: ((Bool) -> ())? = nil) {
@@ -132,7 +133,7 @@ class ContactListViewModel: ObservableObject {
     func itemProvider(contact: ContactSObjectData) -> NSItemProvider {
         let userActivity = NSUserActivity(activityType: openDetailActivityType)
         userActivity.title = openDetailPath
-        let contactId = contact.id.stringValue
+        let contactId = contact.id
         userActivity.userInfo = [openDetailRecordIdKey: contactId]
         userActivity.targetContentIdentifier = openDetailPath
         let itemProvider = NSItemProvider(object: contactId as NSString)

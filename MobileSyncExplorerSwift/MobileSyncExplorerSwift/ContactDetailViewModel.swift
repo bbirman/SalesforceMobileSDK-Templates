@@ -77,7 +77,7 @@ class ContactDetailViewModel: ObservableObject {
     }
 
     func loadContact(id: ContactSObjectData.ID) {
-        if let contact = sObjectDataManager.localRecord(soupID: id.stringValue) {
+        if let contact = sObjectDataManager.localRecord(soupID: id) {
             self.contact = contact
             self.title = ContactHelper.nameStringFromContact(firstName: contact.firstName, lastName: contact.lastName)
         } else {

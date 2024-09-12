@@ -180,11 +180,11 @@ struct ContactDetailView: View {
             self.onAppearAction()
         }
         // TODO: With App lifecycle only
-//        .onContinueUserActivity(openDetailActivityType) { activity in
-//            if let contactId = activity.userInfo?[openDetailRecordIdKey] as? String {
-//                self.viewModel.loadContact(id: NSNumber(value: Int(contactId)!) )
-//            }
-//        }
+        .onContinueUserActivity(openDetailActivityType) { activity in
+            if let contactId = activity.userInfo?[openDetailRecordIdKey] as? String {
+                self.viewModel.loadContact(id: contactId )
+            }
+        }
         .navigationBarTitle(Text(viewModel.title)) // , displayMode: .inline
         .navigationBarBackButtonHidden(viewModel.isEditing)
         .navigationBarItems(

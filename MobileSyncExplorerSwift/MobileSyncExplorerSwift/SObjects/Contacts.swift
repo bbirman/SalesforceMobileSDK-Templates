@@ -112,8 +112,8 @@ class ContactSObjectData: SObjectData, Identifiable {
         }
     }
     
-    var id: NSNumber {
-        return super.nonNullFieldValue("_soupEntryId") as! NSNumber
+    var id: String {
+        return (super.nonNullFieldValue("_soupEntryId") as! NSNumber).stringValue
     }
     
     override init(soupDict: [String: Any]?) {

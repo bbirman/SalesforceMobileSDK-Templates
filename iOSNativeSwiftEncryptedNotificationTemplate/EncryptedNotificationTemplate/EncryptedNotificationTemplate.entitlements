@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.salesforce.mobilesdk.EncryptedNotificationTemplate</string>
+		<string>$(AppIdentifierPrefix)com.bvb.notifications</string>
 	</array>
 </dict>
 </plist>

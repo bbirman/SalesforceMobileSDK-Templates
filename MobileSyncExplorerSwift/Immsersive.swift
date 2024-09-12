@@ -65,23 +65,24 @@ struct FilterButton: ButtonStyle {
             .background(
                 RoundedRectangle(cornerRadius: 40)
             )
+//            .glassBackgroundEffect()
     }
 }
 
 
 struct Header: View {
     @ObservedObject var viewModel: ContactListViewModel
-    @State private var searchTerm: String = ""
+    
     
     var body: some View {
             VStack(alignment: .leading) {
                 Text("\(viewModel.sObjectDataManager.contacts.count) Contacts")
                     .font(.title)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.white)
                 HStack {
                     VStack(alignment: .leading, spacing: 20) {
                         HStack(spacing: 30) {
-                            TextField("", text: $searchTerm, prompt: Text("\(Image(systemName: "magnifyingglass")) Search")
+                            TextField("", text: $viewModel.searchTerm, prompt: Text("\(Image(systemName: "magnifyingglass")) Search")
                                 .foregroundStyle(.black))
                             .textFieldStyle(WhiteBorder())
                             .frame(maxWidth: 300)
@@ -146,7 +147,7 @@ struct Header: View {
 
 
 struct ContactList3D: View {
-    @State private var searchTerm: String = ""
+    
     @ObservedObject var viewModel: ContactListViewModel
 
     init(sObjectManager: SObjectDataManager, selectedRecord: String? = nil, newContact: Bool = false, searchFocused: Bool = false) {
@@ -175,7 +176,9 @@ struct ContactList3D: View {
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack {
-                        ForEach(viewModel.sObjectDataManager.contacts) { contact in
+                        ForEach(viewModel.sObjectDataManager.contacts.filter { contact in
+                            self.viewModel.searchTerm.isEmpty ? true : self.viewModel.contactMatchesSearchTerm(contact: contact, searchTerm: self.viewModel.searchTerm)
+                        }) { contact in
                             VStack {
                                 GeometryReader3D { geo in
                                     VStack(alignment: .leading) {
@@ -264,7 +267,7 @@ struct ContactList3D: View {
                                     .glassBackgroundEffect()
                                     .rotation3DEffect(angle(x: geo.frame(in: .global).center.x, containerWidth: sv.size.width), axis: .y)
                                     .offset(z: offset(x: geo.frame(in: .global).center.x, containerWidth: sv.size.width))
-                                    // .frame(minWidth: 400, minHeight: 500) // TODO
+//                                     .frame(minWidth: 400, minHeight: 500) // TODO
                                     
                                 }
                                 
@@ -280,10 +283,10 @@ struct ContactList3D: View {
                     //
                     //                }
                 }
-                .searchable(text: $searchTerm)
+//                .searchable(text: $searchTerm)
                 
             }
-        }.frame(minWidth: 1800)
+        }//.frame(minWidth: 900)
     }
 }
 //#endif
@@ -319,11 +322,27 @@ struct SearchBar: UIViewRepresentable {
     }
 }
 
-//@main
-struct ContactsApp: App {
+class AppViewModel: ObservableObject {
+    @Published var isAuthenticaed = false
     
+    init(isAuthenticaed: Bool = false) {
+        self.isAuthenticaed = isAuthenticaed
+        AuthHelper.loginIfRequired() {
+            self.isAuthenticaed = true
+        }
+        
+    }
+}
+
+
+@main
+struct ContactsApp: App {
+//    @ObservedObject var viewModel = AppViewModel()
+    
+    @Environment(\.scenePhase) private var scenePhase
     @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @State private var isImmersed = false
+    @State private var currentUser: UserAccount?
     
 //#if os(visionOS)
     @State private var currentStyle: ImmersionStyle = .mixed
@@ -334,9 +353,9 @@ struct ContactsApp: App {
     @Environment(\.openWindow) private var openWindow
 //    #endif
 
-//    init() {
-//        MobileSyncSDKManager.initializeSDK()
-//    }
+    init() {
+        
+    }
 //#if os(visionOS)
     func createImmersivePicture(imageName : String) -> Entity {
            // 2.
@@ -361,80 +380,72 @@ struct ContactsApp: App {
            // 8.
            return modelEntity
        }
-    
-    
-    
-//    #endif
+
     var body: some SwiftUI.Scene {
-        @Environment(\.scenePhase) var scenePhase
         WindowGroup(id: "2D") {
-            
+            VStack {
+                if let currentUser = currentUser {
+                    let sObjectManager = SObjectDataManager.sharedInstance(for: currentUser)
+
+                    if !isImmersed {
+                        Tabs(sObjectDataManager: sObjectManager)
+                            .frame(minWidth: 1200, idealWidth: 1200, maxWidth: 1400, minHeight: 700, idealHeight: 700, maxHeight: 700)
+    //                    ContactListView(sObjectManager: sObjectManager)
+                    } else {
+                        ContactList3D(sObjectManager: sObjectManager)
+                            .frame(minWidth: 1900, minHeight: 800)
+                    }
+                }
+            }
+            .ornament(attachmentAnchor: .scene(.bottomTrailing)) {
+                Button(action: {
+                    isImmersed.toggle()
+                    dismissWindow(id: "detail")
+                }, label: {
+                    isImmersed ? Image(systemName: "list.bullet.rectangle") : Image(systemName: "pano.fill")
+                })
+                .offset(z: isImmersed ? 400 : 0)
+            }
+        }
+        .windowResizability(.contentMinSize)
+        .windowStyle(.plain)
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            if newPhase == .active {
+                AuthHelper.loginIfRequired() {
+                    currentUser = UserAccountManager.shared.currentUserAccount
+                }
+            }
+        }
+                
+        WindowGroup(id: "3D") {
             if let userAccount = UserAccountManager.shared.currentUserAccount {
                 let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
+                ContactList3D(sObjectManager: sObjectManager)
+                    .frame(minWidth: 1800)
+                
+            }
 
-                if !isImmersed {
-//                    Tabs(sObjectDataManager: sObjectManager)
-                    ContactListView(sObjectManager: sObjectManager)
-    //#if os(visionOS)
-                        .ornament(attachmentAnchor: .scene(.bottomTrailing)) {
-                            Button("Immerse") {
-                                
-                                Task {
-                                    
-                                    let result = await openImmersiveSpace(id: "immersive")
-                                    //dismissWindow(id: "2D")
-                                    // openWindow(id: "3D")
-                                    isImmersed = true
-                                    
-                                    if case .error = result {
-                                        print("An error occurred")
-                                    }
-                                }
-                            }
-                        }//.glassBackgroundEffect()
-    //                #endif
-                } else {
-    //#if os(visionOS)
-                    ContactList3D(sObjectManager: sObjectManager)
-    //                #endif
-                }
+        }//.defaultSize(width: 2000, height: 800)
+        .windowResizability(.contentSize)
+        .windowStyle(.plain)
+
+        WindowGroup(id: "detail") {// for: ContactSObjectData.ID.self) { $contactID in
+        if let userAccount = currentUser {//,
+//            let contactID {
+                let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
+                
+                //ContactDetailView(localId: <#T##ContactSObjectData.ID?#>, sObjectDataManager: <#T##SObjectDataManager#>)
+                NavigationStack {
+//                    ContactDetailView(localId: contactID, sObjectDataManager: sObjectManager)
+                    ContactDetailView(sObjectDataManager: sObjectManager)
+                }.frame(height: 650)
+                    
             }
             
         }
-    
-//        .onChange(of: scenePhase) { v1, newPhase in
-//            if newPhase == .active {
-//                AuthHelper.loginIfRequired() {
-//                    if let userAccount = UserAccountManager.shared.currentUserAccount {
-//                        let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
-//                        
-//                        if !isImmersed {
-//                            Tabs(sObjectDataManager: sObjectManager)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-           
-        
-//        .defaultSize(width: 1600, height: 800)
-//#if os(visionOS)
-        .windowStyle(.plain)
-           // .windowResizability(.contentSize)
-//        #endif
-           // .defaultSize(width: <#T##CGFloat#>, height: <#T##CGFloat#>, depth: <#T##CGFloat#>)
-//        WindowGroup(id: "detail") {
-//            if let userAccount = UserAccountManager.shared.currentUserAccount {
-//                let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
-//                
-//                //ContactDetailView(localId: <#T##ContactSObjectData.ID?#>, sObjectDataManager: <#T##SObjectDataManager#>)
-//                ContactDetailView(sObjectDataManager: sObjectManager)
-//                    
-//            }
-//            
-//        }
-//        .handlesExternalEvents(matching: [openDetailActivityType, openDetailPath])
-        
+        .defaultSize(width: 500, height: 650)
+        .handlesExternalEvents(matching: [openDetailActivityType, openDetailPath])
+//        
 //        WindowGroup(id: "3D") {
 //           
 ////            RealityView {
@@ -457,13 +468,15 @@ struct ContactsApp: App {
 //#if os(visionOS)
            
         // Display a fully immersive space.
-//        ImmersiveSpace(id: "immersive") {
-//            RealityView { content in
-//                content.add(createImmersivePicture(imageName : "mascots"))
-//                
-//            }
-          
-//        }.immersionStyle(selection: $currentStyle, in: .mixed)
+        ImmersiveSpace(id: "immersive") {
+            if let userAccount = currentUser {
+                let sObjectManager = SObjectDataManager.sharedInstance(for: userAccount)
+                ContactList3D(sObjectManager: sObjectManager)
+            }
+        }
+        .windowResizability(.contentSize)
+        .defaultSize(width: 2000, height: 800)
+        .immersionStyle(selection: $currentStyle, in: .mixed)
 //        #endif
     
     }

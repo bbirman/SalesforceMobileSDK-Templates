@@ -267,10 +267,6 @@ struct MyImmersiveApp: App {
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
     @State private var isImmersed = false
 
-//    init() {
-//        MobileSyncSDKManager.initializeSDK()
-//    }
-    
     var body: some Scene {
         WindowGroup() {
             let sObjectManager = SObjectDataManager.sharedInstance(for: UserAccountManager.shared.currentUserAccount!)
