@@ -389,7 +389,7 @@ struct ContactsApp: App {
 
                     if !isImmersed {
                         Tabs(sObjectDataManager: sObjectManager)
-                            .frame(minWidth: 1200, idealWidth: 1200, maxWidth: 1400, minHeight: 700, idealHeight: 700, maxHeight: 700)
+                            .frame(minWidth: 1000, idealWidth: 1000, maxWidth: 1000, minHeight: 700, idealHeight: 700, maxHeight: 700)
     //                    ContactListView(sObjectManager: sObjectManager)
                     } else {
                         ContactList3D(sObjectManager: sObjectManager)
@@ -407,7 +407,7 @@ struct ContactsApp: App {
                 .offset(z: isImmersed ? 400 : 0)
             }
         }
-        .windowResizability(.contentMinSize)
+        .windowResizability(.contentSize)
         .windowStyle(.plain)
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {

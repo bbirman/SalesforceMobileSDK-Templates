@@ -3,6 +3,6 @@
     "version": "0.0.1",
     "private": true,
     "sdkDependencies": {
-        "SalesforceMobileSDK-iOS": "https://github.com/bbirman/SalesforceMobileSDK-iOS.git#visionos"
+        "SalesforceMobileSDK-iOS": "https://github.com/bbirman/SalesforceMobileSDK-iOS.git#vision-update"
     }
 }

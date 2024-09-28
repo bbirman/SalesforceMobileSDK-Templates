@@ -1,6 +1,6 @@
 require_relative './mobile_sdk/SalesforceMobileSDK-iOS/mobilesdk_pods'
 
-platform :visionos, '1.0'
+platform :io, '16.0'
 
 project 'MobileSyncExplorerSwift.xcodeproj'
 target 'MobileSyncExplorerSwift' do
@@ -9,11 +9,6 @@ target 'MobileSyncExplorerSwift' do
   use_mobile_sdk!
 end
 
-target 'RecentContactsExtension' do
-  use_frameworks!
-  pod 'SalesforceSDKCommon', :path => "./mobile_sdk/SalesforceMobileSDK-iOS"
-  pod 'SalesforceSDKCore', :path => "./mobile_sdk/SalesforceMobileSDK-iOS"
-end
 
 post_install do |installer|
   # Comment the following if you do not want the SDK to emit signpost events for instrumentation. Signposts are  enabled for non release version of the app.

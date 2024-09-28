@@ -225,7 +225,9 @@ struct ContactCell: View {
                 Image(systemName: "arrow.2.circlepath").foregroundColor(.appBlue)
             }
             if SObjectDataManager.dataLocallyCreated(contact) {
-                Image(systemName: "plus").foregroundColor(.appBlue)
+                Image(systemName: "plus")
+                    .font(.largeTitle)
+                    .foregroundColor(.green)
             }
             if SObjectDataManager.dataLocallyDeleted(contact) {
                 Image(systemName: "trash").foregroundColor(.red)
